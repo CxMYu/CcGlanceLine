@@ -33,7 +33,7 @@ Full segment / icon / color reference: [segments.md](./segments.md).
 - **Additional session context** — 5h/7d rate-limit quota, USD cost and
   worktree name next to the git branch when Claude Code provides it.
 - **Responsive multi-line layout** — probes the terminal width
-  (`CCGLANCE_WIDTH` → `COLUMNS` → TTY → `tput`/`stty`) and wraps each row into
+  (`CCGLANCE_WIDTH` -> `COLUMNS` -> TTY -> `tput`/`stty`) and wraps each row into
   as many lines as fit, down to a minimum of **one segment per line** so
   nothing gets hidden; display-width aware (CJK/emoji safe).
 - **Fixed built-in style** — no user config file and no external style file;

@@ -56,7 +56,7 @@ Update or remove later with `npm update -g @cxmyu/ccglance` / `npm uninstall -g 
 ```bash
 git clone https://github.com/CxMYu/CcGlanceLine.git
 cd CcGlanceLine
-npm install             # installs devDeps; the `prepare` script then compiles src/ → dist/
+npm install             # installs devDeps; the `prepare` script then compiles src/ -> dist/
 npm link                # optional: expose `ccglance` on your PATH
 ```
 

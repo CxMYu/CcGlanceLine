@@ -12,7 +12,7 @@ git clone https://github.com/CxMYu/CcGlanceLine.git
 cd CcGlanceLine
 npm install              # installs devDeps and runs prepare -> build
 
-npm run build            # compile src/ → dist/
+npm run build            # compile src/ -> dist/
 npm run typecheck        # tsc --noEmit (strict)
 npm test                 # build + node:test fixtures/snapshots/smoke
 npm run benchmark        # build + latency benchmark

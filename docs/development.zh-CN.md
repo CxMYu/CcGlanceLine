@@ -11,7 +11,7 @@ git clone https://github.com/CxMYu/CcGlanceLine.git
 cd CcGlanceLine
 npm install              # 安装 devDeps，并执行 prepare -> build
 
-npm run build            # 编译 src/ → dist/
+npm run build            # 编译 src/ -> dist/
 npm run typecheck        # tsc --noEmit(strict)
 npm test                 # 构建 + node:test fixtures/snapshots/smoke
 npm run benchmark        # 构建 + 启动耗时基准

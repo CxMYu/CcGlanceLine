@@ -54,7 +54,7 @@ npm 会下载**预编译好的 `dist/`**(本机不跑编译器),并把 `ccglance
 ```bash
 git clone https://github.com/CxMYu/CcGlanceLine.git
 cd CcGlanceLine
-npm install             # 安装 devDeps；随后 prepare 脚本自动编译 src/ → dist/
+npm install             # 安装 devDeps；随后 prepare 脚本自动编译 src/ -> dist/
 npm link                # 可选：把 ccglance 链到本机 PATH
 ```
 
