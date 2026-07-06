@@ -97,9 +97,14 @@ Windows 用完整路径,例如 `node D:\\path\\to\\ccglance\\dist\\cli.js`。
 > 全局的 `ccglance` 命令则完全不需要写路径。`"padding": 0` 去掉 Claude Code 默认的左侧缩进,
 > 让状态栏从最左开始。
 
+> **Windows 延时提示**:全局命令 `ccglance` 实际是 npm 的 `.cmd` shim,每次重绘要多走一层
+> cmd 批处理 + PATH 查找,视杀软/系统缓存状态可能多几十到上百毫秒。追求最低延时时,
+> 建议 `command` 直接写 `node D:\\绝对路径\\ccglance\\dist\\cli.js`(全局安装的包在
+> `<npm 全局目录>\\node_modules\\@cxmyu\\ccglance\\dist\\cli.js`)。
+
 ## 贡献
 
-欢迎提 issue 和 PR。改代码前请先跑 `npm run typecheck`、`npm run build`、`ccglance preview`;
+欢迎提 issue 和 PR。改代码前请先跑 `npm run typecheck`、`npm run build`、`npm run preview`;
 请保持**运行时零依赖**和固定风格(不加配置加载器)。
 
 ## Star History

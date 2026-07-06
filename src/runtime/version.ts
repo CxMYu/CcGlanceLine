@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { cacheDir } from '../utils/paths';
+import { queueRefreshTask } from './refresh';
 
 const CACHE_TTL_MS = 4 * 3600 * 1000;
 const REFRESH_THROTTLE_MS = 60 * 1000;
@@ -48,28 +49,13 @@ function shouldRefresh(): boolean {
   }
 }
 
+// 只入队不 spawn：实际后台进程由 cli 在 stdout 写出后统一 flush（见 runtime/refresh.ts）。
 export function scheduleRefresh(): void {
   try {
     const age = Date.now() - (readCache().checkedAt || 0);
     if (age <= CACHE_TTL_MS) return;
     if (!shouldRefresh()) return;
-
-    const bg =
-      "const https=require('https'),fs=require('fs'),path=require('path');" +
-      "const f=" + JSON.stringify(cacheFile) + ";" +
-      "const marker=" + JSON.stringify(refreshFile) + ";" +
-      "let prev='';try{prev=(JSON.parse(fs.readFileSync(f,'utf8')).latest)||''}catch{}" +
-      "let done=false;const finish=v=>{if(done)return;done=true;" +
-      "try{const tmp=f+'.'+process.pid+'.tmp';fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(tmp,JSON.stringify({latest:v||prev,checkedAt:Date.now()}));fs.renameSync(tmp,f)}catch{}" +
-      "try{fs.rmSync(marker,{force:true})}catch{}};" +
-      "try{" +
-      "const req=https.get('https://registry.npmjs.org/@anthropic-ai/claude-code/latest',r=>{" +
-      "if(r.statusCode!==200){r.resume();return finish('')}" +
-      "let d='';r.on('data',c=>d+=c);r.on('end',()=>{try{finish(JSON.parse(d).version)}catch{finish('')}})" +
-      "});req.on('error',()=>finish(''));req.setTimeout(5000,()=>{req.destroy();finish('')});" +
-      "}catch{finish('')}";
-    const { spawn } = require('child_process') as typeof import('child_process');
-    spawn(process.execPath, ['-e', bg], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+    queueRefreshTask({ kind: 'version', cacheFile, marker: refreshFile });
   } catch {
     try { fs.rmSync(refreshFile, { force: true }); } catch { /* ignore */ }
     // Version refresh never affects statusline rendering.

@@ -16,15 +16,63 @@ npm run build            # compile src/ -> dist/
 npm run typecheck        # tsc --noEmit (strict)
 npm test                 # build + node:test fixtures/snapshots/smoke
 npm run benchmark        # build + latency benchmark
-ccglance preview         # preview the linked/global command
+npm run preview          # render this repo's dist/ (never the global install)
 
-# smoke-test with a sample stdin payload:
-printf '%s' '{"model":{"display_name":"Claude Opus 4.8 (1M context)","id":"claude-opus-4-8[1m]"}}' | node dist/cli.js
+# smoke-test with a sample stdin payload (temp CLAUDE_CONFIG_DIR keeps the real cache clean):
+CLAUDE_CONFIG_DIR=$(mktemp -d) sh -c \
+  'printf "%s" "{\"model\":{\"display_name\":\"Claude Opus 4.8 (1M context)\",\"id\":\"claude-opus-4-8[1m]\"}}" | node dist/cli.js'
 ```
 
-For local dogfooding, use `npm link` after building and configure Claude Code
-with `"command": "ccglance"`. Without a global link, point Claude Code directly
-at `node /absolute/path/to/ccglance/dist/cli.js`.
+## Isolation from the global install
+
+Local development and a published global install
+(`npm install -g @cxmyu/ccglance`) easily interfere with each other. Follow
+these rules:
+
+- **Verify local changes with `npm run preview` / `node dist/cli.js`**, never
+  with a bare `ccglance` — that resolves to the global install on PATH, not the
+  code you just built.
+- **Avoid `npm link` for day-to-day dogfooding**: it overwrites the globally
+  installed `ccglance` command with a symlink, and the next `npm update -g`
+  swaps it back, so the command silently flips between the two. To run the
+  development build in Claude Code, point settings.json at the repo output
+  instead: `"command": "node /absolute/path/to/ccglance/dist/cli.js"`, and
+  switch back to `"ccglance"` when done.
+- **Tests and benchmarks never touch the real cache**: `test/*.test.js` and
+  `bench/latency.js` point `CLAUDE_CONFIG_DIR` at a temp directory, so runs
+  leave nothing behind in `~/.claude/ccglance/`. Do the same for manual piped
+  smoke tests (as in the example above), otherwise git caches for throwaway
+  repos land in the real cache directory as dead entries.
+
+### When You Need a Global Link
+
+If you intentionally want the bare terminal command `ccglance` to resolve to
+this source checkout, run this from the repository root:
+
+```bash
+npm link
+```
+
+`npm link` points the global package entry at this repository. After that, every
+`npm run build` updates `dist/`, and the global `ccglance` command immediately
+uses the new build; you do not need to link again. Verify the link:
+
+```bash
+npm ls -g @cxmyu/ccglance     # linked state should show -> D:\Pyprojects\ccglance
+ccglance --version            # should print the version from local package.json
+```
+
+Restore the published global install when done:
+
+```bash
+npm unlink -g @cxmyu/ccglance
+npm install -g @cxmyu/ccglance
+```
+
+While linked, the global `ccglance` command is the development build. Running
+`npm update -g` can swap it back to the published install, so day-to-day checks
+should still prefer `npm run preview` or a Claude Code command that points
+directly at `node <repo>/dist/cli.js`.
 
 ## Validation
 
@@ -48,7 +96,7 @@ at `node /absolute/path/to/ccglance/dist/cli.js`.
 - Keep runtime dependencies at zero. New dependencies must be development-only
   and justified by the build pipeline.
 - After code changes, run `npm run typecheck`, `npm run build`, and
-  `ccglance preview`.
+  `npm run preview` (not the global `ccglance`, which is the published install).
 - When changing icon or spacing behavior, test the plain ANSI-stripped preview
   and at least one synthetic stdin payload that exercises the edited segment.
 
@@ -95,3 +143,24 @@ before compiling so old flat artifacts cannot leak into the package.
 - There is no heartbeat or resident watcher. Refresh is lazy: Claude Code
   redraws the status line, ccglance checks the cache age, and only then starts
   the detached refresh process if the cache is stale.
+
+## Background refresh and first-paint latency
+
+- During rendering, git and version refreshes only *queue* work (after claiming
+  their `.refresh` markers). After stdout is written, `flushRefreshTasks()`
+  writes the task list to `~/.claude/ccglance/tasks/task-*.json`, then spawns a
+  **single** detached helper (`dist/runtime/bg.js`). The helper receives the
+  task-file path through argv. A cold start where both git and version caches
+  are stale pays for one child process, not two.
+- On Windows, synchronously initiating a node.exe child is expensive
+  (CreateProcess plus antivirus scanning, measured at ~80-110ms). The helper is
+  therefore launched through a `cmd start /b` trampoline (~17ms to initiate);
+  the real node startup cost is paid by the trampoline after the status-line
+  process has already exited. The task payload is in a file, so cmd only
+  forwards three path arguments: node, helper, and task file.
+- Claude Code waits for the status-line process to exit before rendering its
+  output, so work done "after stdout" still delays the first paint. Keep any
+  post-render logic spawn-free or route it through this merged channel.
+- The helper finishes with a throttled prune pass (at most once per day): cache
+  json untouched for 30 days is deleted, as are `.refresh`, `.tmp`, and
+  `tasks/task-*.json` leftovers older than 1 hour.

@@ -8,8 +8,11 @@ const test = require('node:test');
 const ROOT = path.resolve(__dirname, '..');
 const FIXTURES = path.join(__dirname, 'fixtures');
 
+// 隔离缓存目录：测试用的临时仓库绝不能把缓存写进真实的 ~/.claude/ccglance/。
+const CONFIG_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-test-config-'));
+
 function env() {
-  return { ...process.env, CCGLANCE_WIDTH: '160' };
+  return { ...process.env, CCGLANCE_WIDTH: '160', CLAUDE_CONFIG_DIR: CONFIG_DIR };
 }
 
 function stripAnsi(s) {
@@ -36,6 +39,14 @@ function renderData(data) {
   });
   assert.equal(result.status, 0);
   return stripAnsi(result.stdout);
+}
+
+function writeTaskFile(configDir, tasks) {
+  const tasksDir = path.join(configDir, 'ccglance', 'tasks');
+  fs.mkdirSync(tasksDir, { recursive: true });
+  const taskFile = path.join(tasksDir, `task-test-${process.pid}-${Date.now()}.json`);
+  fs.writeFileSync(taskFile, JSON.stringify(tasks));
+  return taskFile;
 }
 
 test('cli renders valid stdin', () => {
@@ -160,6 +171,73 @@ test('git branch updates immediately after branch switch', (t) => {
 
   const afterSwitch = renderForDir(repo);
   assert.match(afterSwitch, /ccglance-/);
+});
+
+test('background helper refreshes git cache from task file', (t) => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-bg-test-'));
+  const init = runGit(['init', '--quiet'], repo);
+  if (init.status !== 0) {
+    t.skip('git is not available');
+    return;
+  }
+  fs.writeFileSync(path.join(repo, 'file.txt'), 'dirty\n');
+
+  const cacheFile = path.join(repo, 'bg-cache.json');
+  const marker = path.join(repo, 'bg-cache.refresh');
+  fs.writeFileSync(marker, String(Date.now()));
+
+  const taskFile = writeTaskFile(CONFIG_DIR, [{ kind: 'git', root: repo, cacheFile, marker }]);
+  const result = spawnSync(process.execPath, [path.join(ROOT, 'dist', 'runtime', 'bg.js'), taskFile], {
+    encoding: 'utf8',
+    env: env(),
+    windowsHide: true,
+  });
+  assert.equal(result.status, 0);
+
+  const cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+  assert.equal(typeof cache.branch, 'string');
+  assert.ok(cache.branch.length > 0);
+  assert.equal(cache.glyph, '●');
+  assert.equal(typeof cache.checkedAt, 'number');
+  assert.equal(fs.existsSync(marker), false, 'marker should be removed');
+  assert.equal(fs.existsSync(taskFile), false, 'task file should be removed');
+});
+
+test('background helper prunes dead cache entries and stale markers', () => {
+  const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-prune-test-'));
+  const gitDir = path.join(configDir, 'ccglance', 'git');
+  fs.mkdirSync(gitDir, { recursive: true });
+
+  const oldJson = path.join(gitDir, 'git-dead.json');
+  const oldMarker = path.join(gitDir, 'git-dead.refresh');
+  const freshJson = path.join(gitDir, 'git-alive.json');
+  const tasksDir = path.join(configDir, 'ccglance', 'tasks');
+  const oldTask = path.join(tasksDir, 'task-dead.json');
+  fs.writeFileSync(oldJson, '{}');
+  fs.writeFileSync(oldMarker, '0');
+  fs.writeFileSync(freshJson, '{}');
+  fs.mkdirSync(tasksDir, { recursive: true });
+  fs.writeFileSync(oldTask, '[]');
+  const monthsAgo = new Date(Date.now() - 40 * 24 * 3600 * 1000);
+  fs.utimesSync(oldJson, monthsAgo, monthsAgo);
+  const hoursAgo = new Date(Date.now() - 2 * 3600 * 1000);
+  fs.utimesSync(oldMarker, hoursAgo, hoursAgo);
+  fs.utimesSync(oldTask, hoursAgo, hoursAgo);
+
+  const taskFile = writeTaskFile(configDir, []);
+  const result = spawnSync(process.execPath, [path.join(ROOT, 'dist', 'runtime', 'bg.js'), taskFile], {
+    encoding: 'utf8',
+    env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
+    windowsHide: true,
+  });
+  assert.equal(result.status, 0);
+
+  assert.equal(fs.existsSync(oldJson), false, 'stale cache json should be pruned');
+  assert.equal(fs.existsSync(oldMarker), false, 'stale refresh marker should be pruned');
+  assert.equal(fs.existsSync(oldTask), false, 'stale task file should be pruned');
+  assert.equal(fs.existsSync(freshJson), true, 'fresh cache json should survive');
+  assert.equal(fs.existsSync(taskFile), false, 'current task file should be removed');
+  assert.equal(fs.existsSync(path.join(configDir, 'ccglance', 'prune.stamp')), true);
 });
 
 test('git branch prefers stdin worktree branch when provided', () => {

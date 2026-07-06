@@ -3,10 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { paint, seg, C } from '../render/colors';
 import { cacheDir } from '../utils/paths';
+import { queueRefreshTask } from './refresh';
 
 const CACHE_DIR = cacheDir('git');
 const DEFAULT_TTL_MS = 20 * 60 * 1000;
-const GIT_TIMEOUT_MS = 700;
 const REFRESH_THROTTLE_MS = 5000;
 
 interface GitInfo {
@@ -100,44 +100,6 @@ function shouldRefresh(paths: GitPaths): boolean {
   }
 }
 
-function parseStatus(out: string): GitInfo | null {
-  let head = '';
-  let oid = '';
-  let ahead = 0;
-  let behind = 0;
-  let dirty = false;
-  let conflict = false;
-
-  for (const raw of out.split(/\r?\n/)) {
-    const line = raw.trimEnd();
-    if (!line) continue;
-
-    if (line.startsWith('# branch.head ')) {
-      head = line.slice('# branch.head '.length).trim();
-      continue;
-    }
-    if (line.startsWith('# branch.oid ')) {
-      oid = line.slice('# branch.oid '.length).trim();
-      continue;
-    }
-    if (line.startsWith('# branch.ab ')) {
-      const m = /# branch\.ab \+(\d+) -(\d+)/.exec(line);
-      if (m) {
-        ahead = parseInt(m[1], 10) || 0;
-        behind = parseInt(m[2], 10) || 0;
-      }
-      continue;
-    }
-    if (line[0] === '#') continue;
-    if (line.startsWith('u ')) conflict = true;
-    if (!line.startsWith('! ')) dirty = true;
-  }
-
-  const branch = head && head !== '(detached)' ? head : oid.slice(0, 8);
-  if (!branch) return null;
-  return { branch, glyph: conflict ? '⚠' : dirty ? '●' : '✓', ahead, behind };
-}
-
 function readHeadFallback(root: string | null): GitInfo | null {
   if (!root) return null;
   try {
@@ -164,25 +126,10 @@ function branchHintFallback(branchHint: string | undefined): GitInfo | null {
   return branch ? { branch, ahead: 0, behind: 0 } : null;
 }
 
+// 只入队不 spawn：gitSegment 在渲染期间被调用，spawn 留到 stdout 写出后统一 flush。
 function scheduleGitRefresh(paths: GitPaths): void {
   if (!paths.root || !shouldRefresh(paths)) return;
-  try {
-    const bg =
-      "const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process');" +
-      "const cwd=" + JSON.stringify(paths.root) + ";" +
-      "const cf=" + JSON.stringify(paths.cacheFile) + ";" +
-      "const marker=" + JSON.stringify(paths.refreshFile) + ";" +
-      "const parseStatus=" + parseStatus.toString() + ";" +
-      "const save=obj=>{const tmp=cf+'.'+process.pid+'.tmp';fs.mkdirSync(path.dirname(cf),{recursive:true});fs.writeFileSync(tmp,JSON.stringify(obj));fs.renameSync(tmp,cf)};" +
-      "try{" +
-      "const out=execFileSync('git',['--no-optional-locks','-C',cwd,'status','--porcelain=v2','--branch'],{encoding:'utf8',stdio:['ignore','pipe','ignore'],timeout:" + GIT_TIMEOUT_MS + ",windowsHide:true});" +
-      "const info=parseStatus(out);if(info)save({...info,checkedAt:Date.now()});" +
-      "}catch{}finally{try{fs.rmSync(marker,{force:true})}catch{}}";
-    const { spawn } = require('child_process') as typeof import('child_process');
-    spawn(process.execPath, ['-e', bg], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
-  } catch {
-    try { fs.rmSync(paths.refreshFile, { force: true }); } catch { /* ignore */ }
-  }
+  queueRefreshTask({ kind: 'git', root: paths.root, cacheFile: paths.cacheFile, marker: paths.refreshFile });
 }
 
 function formatGit(info: GitInfo, icon: string, worktreeName?: string): string {

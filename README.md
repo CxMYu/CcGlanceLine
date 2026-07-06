@@ -102,10 +102,17 @@ On Windows use a full path, e.g. `node D:\\path\\to\\ccglance\\dist\\cli.js`.
 > command needs no path at all. `"padding": 0` drops Claude Code's default leading
 > indent so the row starts at the left edge.
 
+> **Windows latency tip:** the global `ccglance` command is an npm `.cmd` shim,
+> which adds a cmd batch layer plus a PATH lookup on every redraw — tens to
+> hundreds of milliseconds depending on antivirus and system cache state. For
+> the lowest latency, point `command` directly at the compiled file:
+> `node D:\\absolute\\path\\to\\ccglance\\dist\\cli.js` (a global install lives
+> at `<npm global dir>\\node_modules\\@cxmyu\\ccglance\\dist\\cli.js`).
+
 ## Contributing
 
 Issues and pull requests are welcome. For code changes, run `npm run typecheck`,
-`npm run build`, and `ccglance preview` before opening a PR; keep the runtime at
+`npm run build`, and `npm run preview` before opening a PR; keep the runtime at
 **zero dependencies** and the style fixed (no config loader).
 
 ## Star History

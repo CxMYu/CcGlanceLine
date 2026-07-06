@@ -3,11 +3,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
+const os = require('node:os');
+
 const ROOT = path.resolve(__dirname, '..');
 const FIXTURES = path.join(__dirname, 'fixtures');
 const SNAPSHOTS = path.join(__dirname, 'snapshots');
 const FIXED_NOW_MS = 1893456000000;
 process.env.CCGLANCE_WIDTH = '180';
+// 隔离缓存目录（须在 require dist 之前设置：部分缓存路径在模块加载时固化）。
+process.env.CLAUDE_CONFIG_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-render-config-'));
 
 const { render } = require(path.join(ROOT, 'dist', 'render'));
 const { DEFAULT_SPEC } = require(path.join(ROOT, 'dist', 'defaults'));

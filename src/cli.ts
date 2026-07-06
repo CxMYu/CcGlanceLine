@@ -84,6 +84,7 @@ if (argv[0] === 'preview') {
     const { scheduleRefresh } = require('./runtime/version') as typeof import('./runtime/version');
     scheduleRefresh();
   }
+  (require('./runtime/refresh') as typeof import('./runtime/refresh')).flushRefreshTasks();
   process.exit(0);
 }
 
@@ -106,3 +107,6 @@ if (data.version && hasEnabledSegment(DEFAULT_SPEC, 'version')) {
   const { scheduleRefresh } = require('./runtime/version') as typeof import('./runtime/version');
   scheduleRefresh();
 }
+
+// 渲染期间入队的后台刷新（git / version）最后一次性 spawn，不阻塞状态栏输出。
+(require('./runtime/refresh') as typeof import('./runtime/refresh')).flushRefreshTasks();

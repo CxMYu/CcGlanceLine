@@ -72,7 +72,9 @@ function run() {
   const api = readJson('api.json');
   delete sub.version;
   delete api.version;
-  const benchEnv = { ...process.env, CCGLANCE_WIDTH: '180' };
+  // 隔离缓存目录：跑分用的临时仓库绝不能把缓存写进真实的 ~/.claude/ccglance/。
+  const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-bench-config-'));
+  const benchEnv = { ...process.env, CCGLANCE_WIDTH: '180', CLAUDE_CONFIG_DIR: configDir };
 
   const cases = [
     measure('node empty', ['-e', ''], { env: process.env }),

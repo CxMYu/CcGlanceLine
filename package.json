@@ -1,6 +1,6 @@
 {
   "name": "@cxmyu/ccglance",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A fast, zero-dependency, multi-line status line for Claude Code — model, effort, context, cache, git and session, all at a glance.",
   "bin": {
     "ccglance": "dist/cli.js"
@@ -22,6 +22,7 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "npm run clean && tsc",
     "typecheck": "tsc --noEmit",
+    "preview": "node dist/cli.js preview",
     "test": "npm run build && node --test test/*.test.js",
     "benchmark": "npm run build && node bench/latency.js",
     "prepare": "npm run build",
