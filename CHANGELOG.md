@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 - 2026-07-06
+
+- README: trim the homepage to install + configure; move features, requirements, at-a-glance, how-it-works and cache notes into `docs/overview.md`; center the header and preview.
+- Document Bun as a supported install method and runtime (Node.js >= 22 or Bun).
+
 ## 1.0.2 - 2026-07-06
 
 - README: add a Documentation index linking `docs/segments.md` and `docs/development.md`; remove the Related Projects section.
