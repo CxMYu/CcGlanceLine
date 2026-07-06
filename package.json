@@ -1,0 +1,57 @@
+{
+  "name": "ccglance",
+  "version": "1.0.0",
+  "description": "A fast, zero-dependency, multi-line status line for Claude Code — model, effort, context, cache, git and session, all at a glance.",
+  "bin": {
+    "ccglance": "./dist/cli.js"
+  },
+  "main": "./dist/cli.js",
+  "exports": {
+    ".": "./dist/cli.js",
+    "./package.json": "./package.json"
+  },
+  "type": "commonjs",
+  "files": [
+    "dist",
+    "docs/assets/preview.png"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.js",
+    "benchmark": "npm run build && node bench/latency.js",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "claude-code",
+    "claude",
+    "anthropic",
+    "statusline",
+    "status-line",
+    "statusbar",
+    "cli",
+    "terminal"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CxMYu/CcGlanceLine.git"
+  },
+  "homepage": "https://github.com/CxMYu/CcGlanceLine#readme",
+  "bugs": {
+    "url": "https://github.com/CxMYu/CcGlanceLine/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "CxMYu",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}

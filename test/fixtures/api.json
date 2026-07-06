@@ -1,0 +1,29 @@
+{
+  "session_id": "fixture-api",
+  "prompt_id": "prompt-api",
+  "model": {
+    "display_name": "Claude Sonnet 4.5",
+    "id": "claude-sonnet-4-5"
+  },
+  "context_window": {
+    "context_window_size": 200000,
+    "total_input_tokens": 48000,
+    "used_percentage": 24,
+    "remaining_percentage": 76,
+    "current_usage": {
+      "output_tokens": 900,
+      "cache_read_input_tokens": 12000,
+      "cache_creation_input_tokens": 3000
+    }
+  },
+  "workspace": {
+    "current_dir": "/tmp/ccglance-api"
+  },
+  "cost": {
+    "total_cost_usd": 0,
+    "total_duration_ms": 62000,
+    "total_lines_added": 5,
+    "total_lines_removed": 1
+  },
+  "version": "2.1.153"
+}

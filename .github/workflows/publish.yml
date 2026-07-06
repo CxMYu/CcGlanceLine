@@ -1,0 +1,36 @@
+name: Publish to npm
+
+# 触发方式：
+#   1) 在 GitHub 上「创建一个 Release」时自动发布(推荐，可控且带版本 tag）
+#   2) 手动在 Actions 页点 "Run workflow"
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # npm provenance 需要 OIDC 身份令牌
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # npm ci 会按 lockfile 安装 devDeps，并触发 prepare 脚本编译 dist/
+      - run: npm ci
+
+      - run: npm run typecheck
+      - run: npm test
+
+      # prepublishOnly 会再跑一次 npm run build，确保发布的 dist/ 是最新的。
+      # --provenance 生成来源证明(需上面的 id-token: write)；--access public 显式公开。
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

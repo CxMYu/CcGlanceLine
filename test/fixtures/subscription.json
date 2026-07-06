@@ -1,0 +1,47 @@
+{
+  "session_id": "fixture-subscription",
+  "prompt_id": "prompt-subscription",
+  "model": {
+    "display_name": "Claude Opus 4.8 (1M context)",
+    "id": "claude-opus-4-8[1m]"
+  },
+  "effort": {
+    "level": "high"
+  },
+  "fast_mode": true,
+  "context_window": {
+    "context_window_size": 1000000,
+    "total_input_tokens": 235000,
+    "used_percentage": 23.5,
+    "remaining_percentage": 76.5,
+    "current_usage": {
+      "output_tokens": 1200,
+      "cache_read_input_tokens": 172000,
+      "cache_creation_input_tokens": 15000
+    }
+  },
+  "output_style": {
+    "name": "default"
+  },
+  "rate_limits": {
+    "five_hour": {
+      "used_percentage": 23.5,
+      "resets_at": 1893463200
+    },
+    "seven_day": {
+      "used_percentage": 41.2,
+      "resets_at": 1893794400
+    }
+  },
+  "workspace": {
+    "current_dir": "/tmp/ccglance-subscription"
+  },
+  "session_name": "ccglance",
+  "cost": {
+    "total_cost_usd": 0.1234,
+    "total_duration_ms": 192000,
+    "total_lines_added": 156,
+    "total_lines_removed": 23
+  },
+  "version": "2.1.153"
+}

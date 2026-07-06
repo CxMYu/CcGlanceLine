@@ -1,0 +1,27 @@
+{
+  "session_id": "fixture-large-context",
+  "model": {
+    "display_name": "Claude Opus 4.8 (1M context)",
+    "id": "claude-opus-4-8[1m]"
+  },
+  "context_window": {
+    "context_window_size": 1000000,
+    "total_input_tokens": 920000,
+    "used_percentage": 92,
+    "remaining_percentage": 8,
+    "current_usage": {
+      "output_tokens": 12000,
+      "cache_read_input_tokens": 700000,
+      "cache_creation_input_tokens": 60000
+    }
+  },
+  "workspace": {
+    "current_dir": "/tmp/ccglance-large"
+  },
+  "cost": {
+    "total_duration_ms": 3661000,
+    "total_lines_added": 0,
+    "total_lines_removed": 9
+  },
+  "version": "2.1.153"
+}

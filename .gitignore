@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+
+# JetBrains IDE
+.idea/
+
+# Claude Code local workspace (plans, memory, etc.) — never publish
+.claude/
