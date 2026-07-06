@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2 - 2026-07-06
+
+- README: add a Documentation index linking `docs/segments.md` and `docs/development.md`; remove the Related Projects section.
+- First release published through the GitHub Actions workflow.
+
 ## 1.0.1 - 2026-07-06
 
 - Publish under the scoped npm name `@cxmyu/ccglance`; the installed command stays `ccglance`.

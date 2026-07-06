@@ -13,6 +13,11 @@
 段只在启用时读取 transcript(会话记录)尾部。它用 **TypeScript** 编写,以编译后的
 JavaScript 发布,**运行时零依赖**(仅用 Node 标准库)。
 
+## 文档
+
+- [字段与图标参考](./docs/segments.zh-CN.md) —— 每个段的数据来源、所有图标含义、配额档位与颜色语义
+- [开发](./docs/development.zh-CN.md) —— 构建、测试、代码结构、贡献范式与 git 缓存内部
+
 ## 预览
 
 ![ccglance 预览](./docs/assets/preview.png)
@@ -182,12 +187,6 @@ npm test           # 构建 + node:test
 
 git 缓存逻辑(缓存 key、`HEAD` 兜底、20 分钟 TTL、detached 刷新、原子写)见
 [docs/development.zh-CN.md](./docs/development.zh-CN.md#git-缓存内部细节)。
-
-## 相关项目
-
-- [CCometixLine](https://github.com/Haleclipse/CCometixLine) —— Rust 编写的高性能状态栏,带交互式 TUI 配置与主题
-- [ccstatusline](https://github.com/sirmalloc/ccstatusline) —— 可配置、支持 powerline 风格的状态栏
-- [claude-powerline](https://github.com/Owloops/claude-powerline) —— 轻量的 powerline 风格状态栏
 
 ## 贡献
 

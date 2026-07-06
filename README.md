@@ -15,6 +15,11 @@ the transcript tail when enabled. It's written in
 **TypeScript** and ships as compiled JavaScript with **zero runtime
 dependencies** (Node standard library only).
 
+## Documentation
+
+- [Segment & icon reference](./docs/segments.md) — every segment's data source, all icon meanings, rate-limit levels and color semantics
+- [Development](./docs/development.md) — build, test, source layout, contribution practices and git cache internals
+
 ## Preview
 
 ![ccglance preview](./docs/assets/preview.png)
@@ -207,12 +212,6 @@ safe — every file is regenerated on the next render.
 Git cache behavior (cache key, `HEAD` fallback, 20-minute TTL, detached refresh,
 atomic writes) is documented in
 [docs/development.md](./docs/development.md#git-cache-internals).
-
-## Related Projects
-
-- [CCometixLine](https://github.com/Haleclipse/CCometixLine) — high-performance Rust status line with an interactive TUI config and themes
-- [ccstatusline](https://github.com/sirmalloc/ccstatusline) — configurable status line with powerline styling
-- [claude-powerline](https://github.com/Owloops/claude-powerline) — lightweight powerline-style status line
 
 ## Contributing
 
