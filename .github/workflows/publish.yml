@@ -10,30 +10,28 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # OIDC：npm 可信发布(Trusted Publishing)+ 自动 provenance 所需
+  id-token: write   # provenance 需要 OIDC 身份令牌(token 认证下也可生成来源证明)
 
 jobs:
   publish:
-    runs-on: ubuntu-latest   # 可信发布仅支持 GitHub 托管 runner
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22            # 需 Node >= 22.14.0
+          node-version: 22
           registry-url: https://registry.npmjs.org
 
-      # 可信发布要求 npm CLI >= 11.5.1，而 Node 22 自带的是 npm 10.x，这里升级。
-      - run: npm install -g npm@latest
-      - run: npm --version
-
-      # npm ci 会按 lockfile 安装 devDeps，并触发 prepare 脚本编译 dist/
+      # npm ci 按 lockfile 安装 devDeps，并触发 prepare 脚本编译 dist/
       - run: npm ci
 
       - run: npm run typecheck
       - run: npm test
 
-      # 无需 NPM_TOKEN：npm 通过 OIDC 向 registry 换取短时令牌发布。
-      # 公开仓库 + 公开包会自动生成 provenance，无需 --provenance 标志。
-      # 前提：已在 npmjs.com 的包 Settings 里配置了指向本仓库 + 本 workflow 的 Trusted Publisher。
-      - run: npm publish --access public
+      # 用 NPM_TOKEN 认证发布；--provenance 生成来源证明；--access public 显式公开。
+      # ⚠️ 仓库 secret NPM_TOKEN 必须是「能绕过 2FA」的 token
+      # (Classic Automation，或勾了 bypass 2FA 的 Granular)，否则会 403。
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
