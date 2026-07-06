@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1 - 2026-07-06
+
+- Publish under the scoped npm name `@cxmyu/ccglance`; the installed command stays `ccglance`.
+- Store caches under Claude Code's config dir `~/.claude/ccglance/{git,transcript,version}` (honors `CLAUDE_CONFIG_DIR`) instead of the OS cache dir.
+- Add `ccglance --help` / `--version`; running `ccglance` in a plain terminal (no piped JSON) now prints help instead of blocking on stdin.
+- Fix session `status` detection so a completed text reply shows idle instead of permanent thinking (Claude Code records finished replies with `stop_reason: null`).
+- Slim the README; move the full segment/icon/color reference to `docs/segments.md` and build/dev details to `docs/development.md`.
+
 ## 1.0.0 - 2026-07-02
 
 - Package name and command are `ccglance`.

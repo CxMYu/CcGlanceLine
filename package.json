@@ -1,9 +1,9 @@
 {
-  "name": "ccglance",
-  "version": "1.0.0",
+  "name": "@cxmyu/ccglance",
+  "version": "1.0.1",
   "description": "A fast, zero-dependency, multi-line status line for Claude Code — model, effort, context, cache, git and session, all at a glance.",
   "bin": {
-    "ccglance": "./dist/cli.js"
+    "ccglance": "dist/cli.js"
   },
   "main": "./dist/cli.js",
   "exports": {

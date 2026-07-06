@@ -57,15 +57,15 @@ API key、Bedrock、Vertex 等按量/外部网关场景通常没有该字段，c
 ### 方式 A —— npm 全局安装(推荐)
 
 ```bash
-npm install -g ccglance          # npm
-yarn global add ccglance         # 或 yarn
-pnpm add -g ccglance             # 或 pnpm
+npm install -g @cxmyu/ccglance          # npm
+yarn global add @cxmyu/ccglance         # 或 yarn
+pnpm add -g @cxmyu/ccglance             # 或 pnpm
 ```
 
 registry 慢?用国内镜像:
 
 ```bash
-npm install -g ccglance --registry https://registry.npmmirror.com
+npm install -g @cxmyu/ccglance --registry https://registry.npmmirror.com
 ```
 
 npm 会下载**预编译好的 `dist/`**(本机不跑编译器),并把 `ccglance` 命令装到 `PATH`。
@@ -79,7 +79,7 @@ npm 会下载**预编译好的 `dist/`**(本机不跑编译器),并把 `ccglance
 - 🔎 用 `ccglance preview`(样例渲染)或 `ccglance --help`(用法 + 完整 settings.json
   配置)验证。在普通终端直接敲 `ccglance` 只会打印这份帮助。
 
-后续可用 `npm update -g ccglance` 更新、`npm uninstall -g ccglance` 卸载。
+后续可用 `npm update -g @cxmyu/ccglance` 更新、`npm uninstall -g @cxmyu/ccglance` 卸载。
 
 ### 方式 B —— 从源码构建
 
@@ -129,88 +129,16 @@ Windows 用完整路径,例如 `node D:\\path\\to\\ccglance\\dist\\cli.js`。
 > 全局的 `ccglance` 命令则完全不需要写路径。`"padding": 0` 去掉 Claude Code 默认的左侧缩进,
 > 让状态栏从最左开始。
 
-## 字段说明
+## 状态栏速览
 
-**第一行 —— 运行时**
+三个逻辑行,任意一行无数据时自动消失:
 
-| 标识 | 段 | 来源 | 展示 |
-|---|---|---|---|
-| 🤖 | 模型 | `model.display_name`，缺失时回退 `model.id` | stdin display name 只做轻量压缩(`Opus 4.8 1M`)；缺失时用可读 id 兜底 |
-| 🧠 | effort | `effort.level` | 推理强度 |
-| ✅/⏸️/💭/⚙️/🔧 | 状态 | transcript 尾部 | 仅图标显示状态；工具运行时显示工具名 |
-| 🚀 | fast | `fast_mode` | 仅 fast 模式开启时显示 |
-| ⚡️ | 上下文 | `context_window` | 占比 · 输入 · 输出 · 剩余 |
-| 💾 | 缓存 | `context_window.current_usage` | 命中率 · 缓存读取 · 缓存写入 |
-| 🎯 | 输出风格 | `output_style.name` | 当前 output style |
+1. **运行时** —— 🤖 模型 · 🧠 effort · 状态 · 🚀 fast · ⚡️ 上下文 · 💾 缓存 · 🎯 风格
+2. **配额**(仅订阅会话)—— 📊 Hour / Week 配额仪表
+3. **项目 / 会话** —— 📁 目录 · 🌿 git · 🏷️ 会话名 · ⏱️ 会话 · 💰 成本 · 💩 版本
 
-**第二行 —— 订阅 / 配额**
-
-| 标识 | 段 | 来源 | 展示 |
-|---|---|---|---|
-| 📊 | 配额 | `rate_limits.five_hour` / `rate_limits.seven_day` | Hour / Week 紧凑月相仪表，各自带百分比和重置时间；Claude Code 当前没有月配额窗口 |
-
-**第三行 —— 项目 / 会话**
-
-| 图标 | 段 | 来源 | 展示 |
-|---|---|---|---|
-| 📁 | 目录 | `workspace.current_dir` | 当前目录名 |
-| 🌿 / 🌲 | git + worktree | stdin + 本地 `git` | 分支 + 状态标记：`✓` 干净、`●` 有未提交变更、`⚠` 有冲突；另含 `↑领先` `↓落后`；`worktree.name` 追加在分支状态右侧 |
-| 🏷️ | 会话名 | `session_name` | 由 `--name` 或 `/rename` 设置 |
-| ⏱️ | 会话 | `cost` | 耗时 + `+新增` `-删除` 行数 |
-| 💰 | cost | `cost.total_cost_usd` | 美元成本，大于 0 时显示 |
-| 💩 | 版本 | `version` | Claude Code 版本；4 小时缓存发现新版时追加 `↑latest` |
-
-配额月相映射：
-
-| 占用 | 图标 |
-|---|---|
-| 0% <= 占用 < 10% | 🌑 |
-| 10% <= 占用 < 30% | 🌒 |
-| 30% <= 占用 < 60% | 🌓 |
-| 60% <= 占用 < 90% | 🌔 |
-| 90% <= 占用 <= 100% | 🌕 |
-
-## 图标说明
-
-| 图标 | 含义 |
-|---|---|
-| 🤖 | 模型名；以 `model.display_name` 为准，缺失时用可读 `model.id` 兜底 |
-| 🧠 | 推理强度 |
-| ✅ | 空闲；最近一轮 assistant 输出已完成 |
-| ⏸️ | 暂停；正在执行的动作被用户中断或取消 |
-| 💭 | 思考中；等待或正在接收模型输出 |
-| ⚙️ | 处理中；工具结果已返回，Claude 正在继续处理 |
-| 🔧 | 工具调用中；可用时会显示工具名 |
-| 🚀 | fast mode |
-| ⚡️ | 上下文窗口占用 |
-| 💾 | prompt cache 使用情况 |
-| 🎯 | output style |
-| 📊 | Hour / Week 订阅配额 |
-| 🌑 🌒 🌓 🌔 🌕 | 配额占用档位 |
-| ⏳ | 距离当前配额窗口重置的时间 |
-| 📁 | 当前目录 |
-| 🌿 | git 分支 |
-| ✓ ● ⚠ | git 干净 / 有未提交变更 / 有冲突 |
-| 🌲 | worktree 名，显示在 git 段内 |
-| 🏷️ | 会话名 |
-| ⏱️ | 会话耗时 |
-| 💰 | 会话成本 |
-| 💩 | Claude Code 版本 |
-| ↑latest | 检测到更新的 Claude Code 版本 |
-
-## 颜色语义
-
-| 颜色 | 含义 |
-|---|---|
-| 亮绿 | 空闲/健康状态、fast、缓存、新增、git 干净标记、git 领先/outgoing/push 计数 |
-| 黄色 | 需要注意：暂停状态、effort、配额重置时间、成本、警戒阈值 |
-| 亮红 | 风险或负向：危险阈值、冲突、删除、版本更新提示 |
-| 蓝色 | Git modified/dirty 状态、落后/incoming/pull 计数 |
-| 青色 / 白色 | 中性运行与项目信息：模型、输出风格、会话耗时、git 分支 |
-| 品红 | 当前上下文与会话身份：上下文窗口、会话名 |
-
-status 图标来自 transcript 尾部推断，只代表 Claude Code 触发 statusline 刷新时的近似状态，不是实时事件流。
-如果正在执行时按 Esc 取消，ccglance 会在 Claude Code 下一次重绘 statusline 时更新；transcript 里的中断标记会显示为暂停。
+**完整参考** —— 每个段的 stdin 来源、所有图标含义、配额月相档位、会话状态图标与颜色语义 ——
+见 **[docs/segments.zh-CN.md](./docs/segments.zh-CN.md)**。
 
 ## 原理
 
@@ -225,61 +153,15 @@ transcript 尾部读取，以及渲染后的后台版本检查。
 
 ## 开发
 
-### 源码构建
+源码构建、测试、基准、代码结构、贡献范式与 git 缓存内部细节见
+**[docs/development.zh-CN.md](./docs/development.zh-CN.md)**。快速开始:
 
 ```bash
 git clone https://github.com/CxMYu/CcGlanceLine.git
 cd CcGlanceLine
-npm install              # 安装 devDeps，并执行 prepare -> build
-
-npm run build            # 编译 src/ → dist/
-npm run typecheck        # tsc --noEmit(strict)
-npm test                 # 构建 + node:test fixtures/snapshots/smoke
-npm run benchmark        # 构建 + 启动耗时基准
-ccglance preview         # 预览全局/软链命令
-
-# 用样例 stdin 冒烟测试:
-printf '%s' '{"model":{"display_name":"Claude Opus 4.8 (1M context)","id":"claude-opus-4-8[1m]"}}' | node dist/cli.js
+npm install        # devDeps + prepare 构建
+npm test           # 构建 + node:test
 ```
-
-本地试用建议构建后执行 `npm link`，然后在 Claude Code 里配置 `"command": "ccglance"`。不做全局链接时，直接配置 `node /绝对路径/ccglance/dist/cli.js`。
-
-### 验证
-
-- `test/fixtures/` 放订阅、API 风格、字段缺失、高上下文占用等 stdin 样例。
-- `test/snapshots/` 固定 ANSI 彩色渲染结果，图标、间距、颜色、换行变化都必须是有意修改。
-- `test/*.test.js` 使用 Node 内置 `node:test`，不额外引入运行时测试框架。
-- `bench/latency.js` 会同时测空 Node 基线、无 git、订阅+transcript、git warm cache、
-  git cold fallback。Windows 上空 Node 冷启动通常占大头，判断 ccglance 成本时应看相对基线的增量。
-
-### Agent 构建范式
-
-- `src/` 是唯一源码；不要手改 `dist/`，用 `npm run build` 重新生成。
-- 保持固定内置风格：不要加用户配置读取、外部样式文件、运行时样式发现。
-- 保持运行时零依赖；新增依赖只能是构建期依赖，并说明必要性。
-- 改代码后执行 `npm run typecheck`、`npm run build`、`ccglance preview`。
-- 修改图标或间距时，检查去掉 ANSI 后的 preview，并用至少一个合成 stdin 覆盖被改的 segment。
-
-### 代码结构
-
-```text
-src/
-  cli.ts              # 命令入口：preview / statusLine stdin
-  defaults/           # 固定内置风格与显示顺序
-  readers/            # stdin、transcript 尾读、终端宽度
-  render/             # 颜色、图标、布局、最终渲染
-  segments/           # 每个显示项的渲染逻辑
-  runtime/            # git、Claude Code 版本缓存等运行时能力
-  types/              # Claude Code stdin 与渲染类型
-  utils/              # 格式化、显示宽度计算
-test/
-  fixtures/           # 代表性的 Claude Code stdin 和 transcript 数据
-  snapshots/          # 固定渲染输出基准
-bench/
-  latency.js          # 启动耗时与缓存路径基准
-```
-
-发布到 npm 的只有编译后的 `dist/`；`npm run build` 会先清空 `dist` 再编译，避免旧平铺产物混入包里。
 
 ## 缓存文件
 
@@ -298,19 +180,8 @@ bench/
 若设置了 `CLAUDE_CONFIG_DIR` 改变 Claude Code 配置目录,ccglance 的缓存会跟着落到该目录下。
 整个 `ccglance/` 目录随时可安全删除 —— 下次渲染会自动重建。
 
-git 缓存逻辑：
-
-- 缓存 key 使用 Git worktree 根目录，同一仓库里的多个 Claude Code 终端共享一份 git 缓存。
-- 分支名优先使用 Claude Code stdin 里的 `worktree.branch`；没有该字段时，每次渲染都会从
-  `.git/HEAD` 快速读取，所以普通切换分支也会立即显示。
-- dirty/冲突和 ahead/behind 细节使用缓存；20 分钟内且仍属于当前分支的缓存会直接返回。
-- 本地状态(`✓` / `●` / `⚠`)和上游状态(`↑领先` / `↓落后`)来自同一次
-  `git status --porcelain=v2 --branch` 缓存快照，所以 TTL 相同。如果本地和远程状态同时存在，
-  会一起显示，例如 `main ● ↑1 ↓1`。
-- 缓存过期、无缓存或分支变化时仍立即渲染：用 `.git/HEAD` 快速只显示分支，再后台刷新 `git status`。
-- 刷新使用独占 `.refresh` 标记，写入使用临时文件 rename，多个终端并发不会写坏缓存。
-- 没有心跳，也没有常驻 watcher。刷新是懒触发：Claude Code 重绘 statusline 时启动 ccglance，
-  ccglance 检查缓存年龄，只有过期时才启动 detached 后台刷新进程。
+git 缓存逻辑(缓存 key、`HEAD` 兜底、20 分钟 TTL、detached 刷新、原子写)见
+[docs/development.zh-CN.md](./docs/development.zh-CN.md#git-缓存内部细节)。
 
 ## 相关项目
 

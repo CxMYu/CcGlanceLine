@@ -68,15 +68,15 @@ do not, so ccglance hides the quota row instead of inferring one.
 ### Option A — npm (global, recommended)
 
 ```bash
-npm install -g ccglance          # npm
-yarn global add ccglance         # or yarn
-pnpm add -g ccglance             # or pnpm
+npm install -g @cxmyu/ccglance          # npm
+yarn global add @cxmyu/ccglance         # or yarn
+pnpm add -g @cxmyu/ccglance             # or pnpm
 ```
 
 Behind a slow registry? Use a mirror:
 
 ```bash
-npm install -g ccglance --registry https://registry.npmmirror.com
+npm install -g @cxmyu/ccglance --registry https://registry.npmmirror.com
 ```
 
 npm downloads the prebuilt `dist/` — no compiler runs on your machine — and puts
@@ -92,7 +92,7 @@ After installation:
   the exact `settings.json` setup). Running `ccglance` in a plain terminal just
   prints this help.
 
-Update or remove later with `npm update -g ccglance` / `npm uninstall -g ccglance`.
+Update or remove later with `npm update -g @cxmyu/ccglance` / `npm uninstall -g @cxmyu/ccglance`.
 
 ### Option B — build from source
 
@@ -145,90 +145,17 @@ On Windows use a full path, e.g. `node D:\\path\\to\\ccglance\\dist\\cli.js`.
 > command needs no path at all. `"padding": 0` drops Claude Code's default leading
 > indent so the row starts at the left edge.
 
-## Line reference
+## Status line at a glance
 
-**Line 1 — runtime**
+Three logical rows; any row with no data disappears:
 
-| Label | Segment | Source | Shows |
-|---|---|---|---|
-| 🤖 | model | `model.display_name`, fallback to `model.id` | stdin display name with minimal compacting (`Opus 4.8 1M`); readable id fallback when missing |
-| 🧠 | effort | `effort.level` | reasoning effort |
-| ✅/⏸️/💭/⚙️/🔧 | status | transcript tail | icon-only state; tool name while a tool is running |
-| 🚀 | fast | `fast_mode` | shown only when fast mode is on |
-| ⚡️ | context | `context_window` | usage % · input · output · tokens left |
-| 💾 | cache | `context_window.current_usage` | hit % · cache read · cache write |
-| 🎯 | style | `output_style.name` | active output style |
+1. **Runtime** — 🤖 model · 🧠 effort · status · 🚀 fast · ⚡️ context · 💾 cache · 🎯 style
+2. **Quota** *(subscription sessions only)* — 📊 Hour / Week rate-limit meters
+3. **Project / session** — 📁 dir · 🌿 git · 🏷️ session name · ⏱️ session · 💰 cost · 💩 version
 
-**Line 2 — quota**
-
-| Label | Segment | Source | Shows |
-|---|---|---|---|
-| 📊 | rate limits | `rate_limits.five_hour` / `rate_limits.seven_day` | Compact Hour / Week moon-phase meters with percentage and reset time; Claude Code does not provide a monthly quota window |
-
-**Line 3 — project / session**
-
-| Icon | Segment | Source | Shows |
-|---|---|---|---|
-| 📁 | dir | `workspace.current_dir` | current directory name |
-| 🌿 / 🌲 | git + worktree | stdin + local `git` | branch + status glyph: `✓` clean, `●` dirty, `⚠` conflicts; plus `↑ahead` `↓behind`; `worktree.name` is appended after the branch state |
-| 🏷️ | session name | `session_name` | set via `--name` or `/rename` |
-| ⏱️ | session | `cost` | elapsed time + `+added` `-removed` lines |
-| 💰 | cost | `cost.total_cost_usd` | USD cost, shown only when greater than 0 |
-| 💩 | version | `version` | Claude Code version; appends `↑latest` when the 4h cache finds a newer release |
-
-Rate-limit moon phases:
-
-| Usage | Icon |
-|---|---|
-| 0% <= usage < 10% | 🌑 |
-| 10% <= usage < 30% | 🌒 |
-| 30% <= usage < 60% | 🌓 |
-| 60% <= usage < 90% | 🌔 |
-| 90% <= usage <= 100% | 🌕 |
-
-## Icon Reference
-
-| Icon | Meaning |
-|---|---|
-| 🤖 | model name; `model.display_name` is the source of truth, with readable `model.id` fallback |
-| 🧠 | reasoning effort |
-| ✅ | idle; the last assistant turn appears complete |
-| ⏸️ | paused; a running action was interrupted or cancelled |
-| 💭 | thinking; waiting for or receiving model output |
-| ⚙️ | working; a tool result returned and Claude is processing it |
-| 🔧 | tool call in progress; the tool name is shown when available |
-| 🚀 | fast mode |
-| ⚡️ | context-window usage |
-| 💾 | prompt cache usage |
-| 🎯 | output style |
-| 📊 | Hour / Week rate-limit quota |
-| 🌑 🌒 🌓 🌔 🌕 | rate-limit usage level |
-| ⏳ | time until the quota window resets |
-| 📁 | current directory |
-| 🌿 | git branch |
-| ✓ ● ⚠ | git clean / dirty / conflict |
-| 🌲 | worktree name, shown inside the git segment |
-| 🏷️ | session name |
-| ⏱️ | session duration |
-| 💰 | session cost |
-| 💩 | Claude Code version |
-| ↑latest | newer Claude Code version is available |
-
-## Color Semantics
-
-| Color | Meaning |
-|---|---|
-| Bright green | idle/healthy state, fast mode, cache, additions, clean git marker, git ahead/outgoing/push count |
-| Yellow | attention state: paused status, effort, quota reset time, cost, warning thresholds |
-| Bright red | risk or negative state: danger thresholds, conflicts, deletions, update hint |
-| Blue | Git modified/dirty status and behind/incoming/pull count |
-| Cyan / white | neutral runtime/project identity: model, style, session duration, git branch |
-| Magenta | active context/session identity: context window, session name |
-
-The status icons are inferred from the transcript tail when Claude Code redraws
-the status line. They are a redraw-time approximation, not a live event stream.
-If a running action is cancelled with Esc, ccglance updates on the next Claude
-Code redraw; transcript interrupt markers are shown as paused.
+**Full reference** — every segment's stdin source, all icon meanings, rate-limit
+moon-phase levels, session-status icons and color semantics — lives in
+**[docs/segments.md](./docs/segments.md)**.
 
 ## How it works
 
@@ -247,79 +174,15 @@ bounded transcript-tail reads, and the post-render detached npm registry check.
 
 ## Development
 
-### Source Build
+Source build, tests, benchmark, source layout, contribution practices and git
+cache internals live in **[docs/development.md](./docs/development.md)**. Quick start:
 
 ```bash
 git clone https://github.com/CxMYu/CcGlanceLine.git
 cd CcGlanceLine
-npm install              # installs devDeps and runs prepare -> build
-
-npm run build            # compile src/ → dist/
-npm run typecheck        # tsc --noEmit (strict)
-npm test                 # build + node:test fixtures/snapshots/smoke
-npm run benchmark        # build + latency benchmark
-ccglance preview         # preview the linked/global command
-
-# smoke-test with a sample stdin payload:
-printf '%s' '{"model":{"display_name":"Claude Opus 4.8 (1M context)","id":"claude-opus-4-8[1m]"}}' | node dist/cli.js
+npm install        # devDeps + prepare build
+npm test           # build + node:test
 ```
-
-For local dogfooding, use `npm link` after building and configure Claude Code
-with `"command": "ccglance"`. Without a global link, point Claude Code directly
-at `node /absolute/path/to/ccglance/dist/cli.js`.
-
-### Validation
-
-- `test/fixtures/` contains stdin payloads for subscription, API-style,
-  missing-field, and high-context scenarios.
-- `test/snapshots/` locks the ANSI-colored rendered output so icon, spacing,
-  color, and row changes are intentional.
-- `test/*.test.js` uses Node's built-in `node:test`; no test runner dependency
-  is added to the runtime package.
-- `bench/latency.js` measures cold process startup against an empty Node
-  baseline, plus no-git, subscription+transcript, git warm-cache, and git
-  cold-fallback paths. On Windows, the empty Node baseline is usually the
-  dominant part of the number; compare ccglance cases to that baseline.
-
-### Agent Build Practices
-
-- Treat `src/` as the source of truth. Do not hand-edit `dist/`; regenerate it
-  with `npm run build`.
-- Keep the status line fixed-style: no user config loader, no external style
-  file, and no runtime style discovery.
-- Keep runtime dependencies at zero. New dependencies must be development-only
-  and justified by the build pipeline.
-- After code changes, run `npm run typecheck`, `npm run build`, and
-  `ccglance preview`.
-- When changing icon or spacing behavior, test the plain ANSI-stripped preview
-  and at least one synthetic stdin payload that exercises the edited segment.
-
-### Source layout
-
-```text
-src/
-  cli.ts              # command entry: preview / statusLine stdin
-  defaults/           # fixed built-in style and segment order
-  readers/            # stdin, transcript tail reads, terminal width
-  render/             # colors, icons, layout, final rendering
-  segments/           # per-segment rendering logic
-  runtime/            # git and Claude Code version-cache helpers
-  types/              # Claude Code stdin and renderer types
-  utils/              # formatting and display-width helpers
-test/
-  fixtures/           # representative Claude Code stdin and transcript data
-  snapshots/          # fixed rendered-output baselines
-bench/
-  latency.js          # startup and cache-path benchmark
-```
-
-Only the compiled `dist/` is published to npm. `npm run build` cleans `dist`
-before compiling so old flat artifacts cannot leak into the package.
-
-## Session status and preview
-
-- Session status: an icon indicator inferred from the transcript tail; `✅` idle, `⏸️` paused/interrupted, `💭` thinking, `⚙️` processing a tool result, `🔧 <tool>` running a tool.
-- ccglance preview: render a built-in sample with the fixed renderer.
 
 ## Cache Files
 
@@ -341,27 +204,9 @@ If you set `CLAUDE_CONFIG_DIR` to relocate Claude Code's config, ccglance places
 its caches under that directory instead. Deleting the whole `ccglance/` folder is
 safe — every file is regenerated on the next render.
 
-Git cache behavior:
-
-- Cache key is the Git worktree root, so multiple Claude Code terminals in the
-  same repo share one git cache.
-- The branch name prefers Claude Code stdin when `worktree.branch` is present;
-  otherwise ccglance checks `.git/HEAD` on every render, so normal branch
-  switches still show up immediately.
-- Dirty/conflict and ahead/behind details use a cache. A cache newer than 20
-  minutes is returned when it still belongs to the current branch.
-- Local state (`✓` / `●` / `⚠`) and upstream state (`↑ahead` / `↓behind`) come
-  from the same cached `git status --porcelain=v2 --branch` snapshot, so they
-  share the same TTL. If both local and upstream changes exist, ccglance shows
-  them together, for example `main ● ↑1 ↓1`.
-- A stale cache, missing cache, or branch change still renders immediately;
-  ccglance shows a fast branch-only `HEAD` fallback, then refreshes `git status`
-  in a detached process.
-- Refresh uses an exclusive `.refresh` marker and atomic temp-file rename, so
-  concurrent terminals do not corrupt the cache.
-- There is no heartbeat or resident watcher. Refresh is lazy: Claude Code
-  redraws the status line, ccglance checks the cache age, and only then starts
-  the detached refresh process if the cache is stale.
+Git cache behavior (cache key, `HEAD` fallback, 20-minute TTL, detached refresh,
+atomic writes) is documented in
+[docs/development.md](./docs/development.md#git-cache-internals).
 
 ## Related Projects
 
