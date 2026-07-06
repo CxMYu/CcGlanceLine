@@ -1,28 +1,23 @@
+<div align="center">
+
 # ccglance
 
-> 面向 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 的轻量多行状态栏 —— 模型、effort、上下文、缓存、git、会话,一眼尽览。TypeScript 编写、运行时零依赖。
+**面向 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 的快速、零依赖多行状态栏**
+
+模型 · effort · 上下文 · 缓存 · git · 会话 —— 一眼尽览
 
 [![Node.js >= 22](https://img.shields.io/badge/node-%3E%3D22-3c873a)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-[English](./README.md) | 简体中文
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/CxMYu/CcGlanceLine)
 
-仓库：[github.com/CxMYu/CcGlanceLine](https://github.com/CxMYu/CcGlanceLine)
-
-`ccglance` 以 Claude Code 通过 stdin 传入的 JSON 为主数据源；`status`
-段只在启用时读取 transcript(会话记录)尾部。它用 **TypeScript** 编写,以编译后的
-JavaScript 发布,**运行时零依赖**(仅用 Node 标准库)。
-
-## 文档
-
-- [字段与图标参考](./docs/segments.zh-CN.md) —— 每个段的数据来源、所有图标含义、配额档位与颜色语义
-- [开发](./docs/development.zh-CN.md) —— 构建、测试、代码结构、贡献范式与 git 缓存内部
-
-## 预览
+</div>
 
 ![ccglance 预览](./docs/assets/preview.png)
 
-截图由 `ccglance preview` 生成。
+> **stdin 优先 · 运行时零依赖 · 固定 emoji 风格** —— 渲染 Claude Code 经 stdin 传入的 JSON;仅 `status` 段读取 transcript 尾部固定字节。TypeScript 编写,以编译后的 JavaScript 发布。
+
+**文档:** [字段与图标](./docs/segments.zh-CN.md) · [开发](./docs/development.zh-CN.md)
 
 ## 特性
 

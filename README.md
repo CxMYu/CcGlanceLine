@@ -1,30 +1,23 @@
+<div align="center">
+
 # ccglance
 
-> A fast, zero-dependency, multi-line status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — model, effort, context, cache, git and session, all at a glance.
+**A fast, zero-dependency, multi-line status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code)**
+
+model · effort · context · cache · git · session — all at a glance
 
 [![Node.js >= 22](https://img.shields.io/badge/node-%3E%3D22-3c873a)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-English | [简体中文](./README.zh-CN.md)
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/CxMYu/CcGlanceLine)
 
-Repository: [github.com/CxMYu/CcGlanceLine](https://github.com/CxMYu/CcGlanceLine)
-
-`ccglance` uses the JSON that Claude Code pipes to its status-line command
-on stdin as its primary data source; the session `status` segment reads only
-the transcript tail when enabled. It's written in
-**TypeScript** and ships as compiled JavaScript with **zero runtime
-dependencies** (Node standard library only).
-
-## Documentation
-
-- [Segment & icon reference](./docs/segments.md) — every segment's data source, all icon meanings, rate-limit levels and color semantics
-- [Development](./docs/development.md) — build, test, source layout, contribution practices and git cache internals
-
-## Preview
+</div>
 
 ![ccglance preview](./docs/assets/preview.png)
 
-Generated from `ccglance preview`.
+> **stdin-first · zero runtime dependencies · fixed emoji style** — renders the JSON Claude Code pipes to its status-line command; only the `status` segment reads a bounded transcript tail. Written in TypeScript, shipped as compiled JavaScript.
+
+**Docs:** [Segments & icons](./docs/segments.md) · [Development](./docs/development.md)
 
 ## Features
 
