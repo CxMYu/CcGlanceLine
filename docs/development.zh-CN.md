@@ -118,13 +118,13 @@ bench/
 ## 后台刷新与首帧延时
 
 - git 与版本刷新在渲染期间只「入队」（各自先抢占 `.refresh` 标记）；stdout 写出后由
-  `flushRefreshTasks()` 把任务列表写入 `~/.claude/ccglance/tasks/task-*.json`，再一次性启动
-  **单个** detached helper（`dist/runtime/bg.js`），helper 通过 argv 读取任务文件路径。
-  冷启动时 git + 版本同时过期也只付一次子进程成本。
-- Windows 上发起一个 node.exe 子进程的同步成本很高（CreateProcess + 杀软扫描，实测
-  ~80-110ms）。因此 helper 经 `cmd start /b` 蹦床启动（发起 ~17ms），node 的真实启动开销由蹦床
-  在状态栏进程退出后承担；任务内容在文件里，cmd 只转发 node、helper 和任务文件三个路径参数。
-- Claude Code 要等状态栏进程退出才渲染输出，所以「写完 stdout 再做的事」同样会拖慢首帧——
-  任何新增的渲染后逻辑都应保持零 spawn 或走这条合并通道。
-- helper 最后会做一次节流式 prune（过期清理）：每天最多一次，删除 30 天未刷新的缓存 json，
-  以及 1 小时以上的 `.refresh` / `.tmp` / `tasks/task-*.json` 残留。
+  `flushRefreshTasks()` 启动**单个**后台 helper（`dist/runtime/bg.js`）执行。各段缓存都新鲜时
+  queue 为空、不 spawn 任何进程，所以常规重绘完全不起后台进程。
+- 任务列表作为一个 JSON argv 参数传入（不经 shell、无需临时文件），因此不会留下
+  `task-*.json` 残留。
+- helper 跨平台统一以 `detached` + `stdio:'ignore'` 启动，从而脱离父进程、跑完写缓存。
+  Windows 上**不要**再加 `windowsHide`——`detached`(`DETACHED_PROCESS`) 与
+  `windowsHide`(`CREATE_NO_WINDOW`) 是冲突组合，会闪出控制台黑窗；`detached` 单独即不分配
+  控制台、静默。
+- helper 每次运行都清理：孤儿 `.refresh` / `.tmp`（及历史遗留的 `tasks/` 目录）立即删除，
+  死缓存 json（约 30 天）每天最多清一次。

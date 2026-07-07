@@ -1,31 +1,18 @@
 # Changelog
 
-## 1.1.0 - 2026-07-06
+## 1.1.1 - 2026-07-06
 
-- Cut cold-start first-paint latency: git and version background refreshes now
-  queue during rendering and are flushed after stdout as a **single** detached
-  helper process (`dist/runtime/bg.js`, tasks passed through
-  `~/.claude/ccglance/tasks/task-*.json`), instead of spawning one `node -e`
-  child each.
-- Windows: launch the background helper through a `cmd start /b` trampoline
-  (~17ms to initiate vs ~80-110ms for node.exe), so the status-line process
-  exits without paying node's process-creation cost. The old code spawned the
-  git refresh *before* stdout was written, delaying the visible line itself;
-  measured cold start (git + version both stale) improved on both time-to-first
-  -byte (~360ms -> ~235ms p50) and the process-exit lower bound
-  (~475ms -> ~290ms p50).
-- README: document that pointing `command` directly at `dist/cli.js` avoids the
-  npm `.cmd` shim overhead on Windows (tens to hundreds of ms per redraw
-  depending on antivirus/cache state).
-- Tests and the latency benchmark now isolate `CLAUDE_CONFIG_DIR` to a temp
-  directory, so runs against throwaway repos no longer leave dead git/transcript
-  cache entries in the real `~/.claude/ccglance/`.
-- The background helper opportunistically prunes the cache (at most once per
-  day): cache json untouched for 30 days and `.refresh`/`.tmp`/task-file
-  leftovers older than 1 hour are deleted.
-- Add `npm run preview` and document the local-development isolation rules
-  (never verify with the global `ccglance`; avoid `npm link`; point Claude Code
-  at `node <repo>/dist/cli.js` for dogfooding).
+- Faster status-line cold start: git and version refreshes are batched into a
+  single short-lived background task that runs after the line is printed, instead
+  of launching separate processes mid-render. When the cache is fresh, the common
+  redraw does no background work at all.
+- Windows: the background refresh no longer flashes a console window.
+- Runtime caches now clean themselves up over time (stale git/version entries and
+  leftover temporary files), and stay under `~/.claude/ccglance/` (honors
+  `CLAUDE_CONFIG_DIR`).
+- Tests and the latency benchmark no longer write into the real cache directory.
+- Add `npm run preview`, and document how to develop locally without clashing
+  with a global install.
 
 ## 1.0.3 - 2026-07-06
 

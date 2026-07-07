@@ -1,14 +1,9 @@
 // 后台刷新调度 —— 渲染期间各段只「入队」（调用方先抢占各自的 .refresh marker），
-// stdout 写出后由 cli 调 flushRefreshTasks() 一次性 spawn 单个 detached helper（bg.js）。
-//
-// 为什么不各自直接 spawn：Windows 上发起一个 node.exe 子进程的同步成本很高
-// （CreateProcess + 杀软扫描，实测 ~80-110ms），冷缓存首帧会连发两个，直接拖慢状态栏。
-// 合并为一次，并在 Windows 上经 cmd `start /b` 蹦床发起（实测 ~17ms）：node 的真实
-// 启动成本由蹦床在本进程退出后承担，不再占用状态栏进程的生命周期。
-// 任务负载写入 ~/.claude/ccglance/tasks/task-*.json，helper 只接收任务文件路径。
+// stdout 写出后由 cli 调 flushRefreshTasks() 一次性 spawn 单个后台 helper（bg.js）。
+// 合并为一次 spawn，避免冷缓存首帧连发两个后台进程；缓存都新鲜时 queue 为空、直接返回，
+// 常规重绘不起任何后台进程。任务数据经 argv 直接传给 helper（不经 shell、无需临时文件）。
 import fs from 'fs';
 import path from 'path';
-import { cacheDir } from '../utils/paths';
 
 export interface GitRefreshTask {
   kind: 'git';
@@ -38,46 +33,27 @@ function removeMarkers(tasks: RefreshTask[]): void {
   }
 }
 
-function writeTaskFile(tasks: RefreshTask[]): string {
-  const dir = cacheDir('tasks');
-  fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, `task-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.json`);
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(tasks));
-  fs.renameSync(tmp, file);
-  return file;
-}
-
-function quoteCmdArg(s: string): string {
-  return `"${s}"`;
-}
-
 // 渲染输出完成后调用：把积累的刷新任务交给一个 detached 后台 helper 进程。
 export function flushRefreshTasks(): void {
   if (!queue.length) return;
   const tasks = queue.splice(0);
-  let taskFile = '';
   try {
     const helper = path.join(__dirname, 'bg.js');
-    taskFile = writeTaskFile(tasks);
+    const payload = JSON.stringify(tasks);
     const { spawn } = require('child_process') as typeof import('child_process');
-    // Windows：node.exe 的 CreateProcess 同步成本很高（杀软扫描），改用 cmd `start /b`
-    // 蹦床（发起 ~17ms），真正的 node 启动开销由蹦床在本进程退出后承担。
-    // 任务本身在文件里；cmd 只需要转发 node/helper/taskFile 三个路径参数。
-    const child = process.platform === 'win32'
-      ? spawn('cmd.exe',
-        ['/d', '/s', '/c', `start "" /b ${quoteCmdArg(process.execPath)} ${quoteCmdArg(helper)} ${quoteCmdArg(taskFile)}`],
-        { detached: true, stdio: 'ignore', windowsHide: true, windowsVerbatimArguments: true })
-      : spawn(process.execPath, [helper, taskFile], { detached: true, stdio: 'ignore' });
-    child.on('error', () => {
-      try { fs.rmSync(taskFile, { force: true }); } catch { /* ignore */ }
-      removeMarkers(tasks);
+    // 直接 detached spawn node，不经 shell：
+    // - 任务数据用一个 argv 参数（JSON）传给 helper；spawn 不走 shell，无引号/转义问题，
+    //   因此不需要临时任务文件（历史上用过 task-*.json，是残留主因，已弃用）。
+    // - detached 让 helper 脱离父进程独立跑完，并在结束时清理自己的 marker，避免残留。
+    // - Windows 关键坑：绝不同时设 detached + windowsHide —— 两个 flag 冲突会意外弹出
+    //   控制台黑窗。detached 单独即 DETACHED_PROCESS，本就不分配控制台，因此静默。
+    const child = spawn(process.execPath, [helper, payload], {
+      detached: true,
+      stdio: 'ignore',
     });
+    child.on('error', () => removeMarkers(tasks));
     child.unref();
   } catch {
-    if (taskFile) {
-      try { fs.rmSync(taskFile, { force: true }); } catch { /* ignore */ }
-    }
     removeMarkers(tasks);
   }
 }

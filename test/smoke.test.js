@@ -41,14 +41,6 @@ function renderData(data) {
   return stripAnsi(result.stdout);
 }
 
-function writeTaskFile(configDir, tasks) {
-  const tasksDir = path.join(configDir, 'ccglance', 'tasks');
-  fs.mkdirSync(tasksDir, { recursive: true });
-  const taskFile = path.join(tasksDir, `task-test-${process.pid}-${Date.now()}.json`);
-  fs.writeFileSync(taskFile, JSON.stringify(tasks));
-  return taskFile;
-}
-
 test('cli renders valid stdin', () => {
   const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'api.json'), 'utf8'));
   delete data.version;
@@ -173,7 +165,7 @@ test('git branch updates immediately after branch switch', (t) => {
   assert.match(afterSwitch, /ccglance-/);
 });
 
-test('background helper refreshes git cache from task file', (t) => {
+test('background helper refreshes git cache from argv payload', (t) => {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-bg-test-'));
   const init = runGit(['init', '--quiet'], repo);
   if (init.status !== 0) {
@@ -186,8 +178,8 @@ test('background helper refreshes git cache from task file', (t) => {
   const marker = path.join(repo, 'bg-cache.refresh');
   fs.writeFileSync(marker, String(Date.now()));
 
-  const taskFile = writeTaskFile(CONFIG_DIR, [{ kind: 'git', root: repo, cacheFile, marker }]);
-  const result = spawnSync(process.execPath, [path.join(ROOT, 'dist', 'runtime', 'bg.js'), taskFile], {
+  const payload = JSON.stringify([{ kind: 'git', root: repo, cacheFile, marker }]);
+  const result = spawnSync(process.execPath, [path.join(ROOT, 'dist', 'runtime', 'bg.js'), payload], {
     encoding: 'utf8',
     env: env(),
     windowsHide: true,
@@ -200,10 +192,9 @@ test('background helper refreshes git cache from task file', (t) => {
   assert.equal(cache.glyph, '●');
   assert.equal(typeof cache.checkedAt, 'number');
   assert.equal(fs.existsSync(marker), false, 'marker should be removed');
-  assert.equal(fs.existsSync(taskFile), false, 'task file should be removed');
 });
 
-test('background helper prunes dead cache entries and stale markers', () => {
+test('background helper prunes dead caches and stale markers', () => {
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-prune-test-'));
   const gitDir = path.join(configDir, 'ccglance', 'git');
   fs.mkdirSync(gitDir, { recursive: true });
@@ -224,19 +215,17 @@ test('background helper prunes dead cache entries and stale markers', () => {
   fs.utimesSync(oldMarker, hoursAgo, hoursAgo);
   fs.utimesSync(oldTask, hoursAgo, hoursAgo);
 
-  const taskFile = writeTaskFile(configDir, []);
-  const result = spawnSync(process.execPath, [path.join(ROOT, 'dist', 'runtime', 'bg.js'), taskFile], {
+  const result = spawnSync(process.execPath, [path.join(ROOT, 'dist', 'runtime', 'bg.js'), '[]'], {
     encoding: 'utf8',
     env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
     windowsHide: true,
   });
   assert.equal(result.status, 0);
 
-  assert.equal(fs.existsSync(oldJson), false, 'stale cache json should be pruned');
+  assert.equal(fs.existsSync(oldJson), false, 'dead cache json should be pruned');
   assert.equal(fs.existsSync(oldMarker), false, 'stale refresh marker should be pruned');
-  assert.equal(fs.existsSync(oldTask), false, 'stale task file should be pruned');
+  assert.equal(fs.existsSync(oldTask), false, 'leftover task file should be pruned');
   assert.equal(fs.existsSync(freshJson), true, 'fresh cache json should survive');
-  assert.equal(fs.existsSync(taskFile), false, 'current task file should be removed');
   assert.equal(fs.existsSync(path.join(configDir, 'ccglance', 'prune.stamp')), true);
 });
 

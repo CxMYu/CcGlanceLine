@@ -1,8 +1,9 @@
 // 后台刷新 helper —— 由 refresh.ts 以 detached 进程启动，绝不被状态栏进程等待。
-// 任务列表从 argv[2] 指向的 task-*.json 读入，全部尽力而为、静默失败：
+// 任务列表从 argv[2]（JSON）读入，全部尽力而为、静默失败：
 //   git     —— 单次有界 `git status --porcelain=v2 --branch`，解析后原子写缓存
 //   version —— 拉 npm registry 的 Claude Code 最新版本，原子写缓存
 // 每个任务无论成败都要移除自己的 .refresh marker，否则只能等节流窗口过期。
+// 每次运行还顺手清理孤儿产物：过期的 .refresh / .tmp（及历史遗留的 tasks/ 目录）。
 import fs from 'fs';
 import path from 'path';
 import type { RefreshTask } from './refresh';
@@ -10,11 +11,13 @@ import { appCacheDir } from '../utils/paths';
 
 const GIT_TIMEOUT_MS = 700;
 
-// 缓存清理：每天最多一次（stamp 节流）。缓存 key 是仓库/transcript 路径的哈希，
-// 临时目录一去不返时对应 json 便成死条目，按 mtime 过期删除（活跃条目会被刷新持续续命）。
+// 孤儿瞬时产物阈值：.refresh/.tmp 本应几秒内被删（helper 最长约 5s）；超过此值即视为
+// 夭折进程的残留。每次运行开头 + 结尾各清一次，故取较短的 2 分钟让残留更快被接管清理。
+const STALE_TRANSIENT_MS = 2 * 60 * 1000;
+// 死缓存清理：缓存 key 是仓库/transcript 路径哈希，临时目录一去不返时对应 json 便成死条目。
+// 每天最多清一次（stamp 节流），删除长期未刷新的缓存 json（活跃条目会被刷新持续续命）。
 const PRUNE_INTERVAL_MS = 24 * 3600 * 1000;
 const PRUNE_MAX_AGE_MS = 30 * 24 * 3600 * 1000;
-const PRUNE_TRANSIENT_MAX_AGE_MS = 3600 * 1000; // 残留 .refresh 标记 / .tmp 半成品 / task 文件
 
 interface GitInfo {
   branch: string;
@@ -116,9 +119,28 @@ function runVersionTask(cacheFile: string, done: () => void): void {
   }
 }
 
-// 过期清理：正常缓存 json 超过 30 天未被刷新（mtime）视为死条目；
-// .refresh / .tmp / tasks 超过 1 小时视为进程夭折的残留。逐文件尽力而为。
-function pruneCaches(nowMs = Date.now()): void {
+// 每次运行都做的轻清理：删除过期的孤儿瞬时产物（.refresh / .tmp），以及历史遗留的
+// tasks/ 目录内容。成本很低（这些目录文件很少），能让残留不再累积。
+function pruneStaleTransient(nowMs = Date.now()): void {
+  const root = appCacheDir();
+  for (const sub of ['git', 'version', 'transcript', 'tasks']) {
+    const dir = path.join(root, sub);
+    let names: string[];
+    try { names = fs.readdirSync(dir); } catch { continue; }
+    for (const name of names) {
+      // tasks/ 已弃用：其中任何文件都算历史遗留；其他目录只清 .refresh / .tmp 瞬时产物。
+      if (sub !== 'tasks' && !name.endsWith('.refresh') && !name.endsWith('.tmp')) continue;
+      const file = path.join(dir, name);
+      try {
+        if (nowMs - fs.statSync(file).mtimeMs > STALE_TRANSIENT_MS) fs.rmSync(file, { force: true });
+      } catch { /* ignore */ }
+    }
+    if (sub === 'tasks') { try { fs.rmdirSync(dir); } catch { /* 非空/不存在都忽略 */ } }
+  }
+}
+
+// 每天最多一次（stamp 节流）：删除长期未刷新的死缓存 json。
+function pruneDeadCaches(nowMs = Date.now()): void {
   const root = appCacheDir();
   const stamp = path.join(root, 'prune.stamp');
   try {
@@ -131,30 +153,27 @@ function pruneCaches(nowMs = Date.now()): void {
     return;
   }
 
-  for (const sub of ['git', 'transcript', 'version', 'tasks']) {
+  for (const sub of ['git', 'transcript', 'version']) {
     const dir = path.join(root, sub);
     let names: string[];
     try { names = fs.readdirSync(dir); } catch { continue; }
     for (const name of names) {
+      if (!name.endsWith('.json')) continue;
       const file = path.join(dir, name);
       try {
-        const st = fs.statSync(file);
-        if (!st.isFile()) continue;
-        const age = nowMs - st.mtimeMs;
-        const transient = sub === 'tasks' || name.endsWith('.refresh') || name.endsWith('.tmp');
-        if (age > (transient ? PRUNE_TRANSIENT_MAX_AGE_MS : PRUNE_MAX_AGE_MS)) {
-          fs.rmSync(file, { force: true });
-        }
+        if (nowMs - fs.statSync(file).mtimeMs > PRUNE_MAX_AGE_MS) fs.rmSync(file, { force: true });
       } catch { /* ignore */ }
     }
   }
 }
 
 function main(): void {
-  const taskFile = process.argv[2] || '';
+  const payload = process.argv[2] || '';
+  // 开头先接管清理上一轮遗留的孤儿（含被强杀进程没来得及删的 marker）：即便本次任务中途
+  // 被杀、finally 没跑到，这些残留也会在下一次后台刷新一启动时被清掉，不会长期堆积。
+  try { pruneStaleTransient(); } catch { /* best effort */ }
   try {
-    // 任务文件已由 refresh.ts 原子写入；读损坏时 markers 交给节流窗口 + prune 兜底。
-    const tasks: RefreshTask[] = taskFile ? JSON.parse(fs.readFileSync(taskFile, 'utf8')) as RefreshTask[] : [];
+    const tasks: RefreshTask[] = payload ? JSON.parse(payload) as RefreshTask[] : [];
     for (const task of tasks) {
       if (task.kind === 'git') {
         try { runGitTask(task.root, task.cacheFile); } catch { /* best effort */ }
@@ -164,10 +183,10 @@ function main(): void {
       }
     }
   } catch {
-    // 任务文件缺失 / 损坏：静默退出，仍走 finally 清理。
+    // payload 缺失 / 损坏：静默退出，仍走 finally 清理。
   } finally {
-    if (taskFile) { try { fs.rmSync(taskFile, { force: true }); } catch { /* ignore */ } }
-    try { pruneCaches(); } catch { /* best effort */ }
+    try { pruneStaleTransient(); } catch { /* best effort */ }
+    try { pruneDeadCaches(); } catch { /* best effort */ }
   }
 }
 

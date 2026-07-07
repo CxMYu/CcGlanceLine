@@ -147,20 +147,17 @@ before compiling so old flat artifacts cannot leak into the package.
 ## Background refresh and first-paint latency
 
 - During rendering, git and version refreshes only *queue* work (after claiming
-  their `.refresh` markers). After stdout is written, `flushRefreshTasks()`
-  writes the task list to `~/.claude/ccglance/tasks/task-*.json`, then spawns a
-  **single** detached helper (`dist/runtime/bg.js`). The helper receives the
-  task-file path through argv. A cold start where both git and version caches
-  are stale pays for one child process, not two.
-- On Windows, synchronously initiating a node.exe child is expensive
-  (CreateProcess plus antivirus scanning, measured at ~80-110ms). The helper is
-  therefore launched through a `cmd start /b` trampoline (~17ms to initiate);
-  the real node startup cost is paid by the trampoline after the status-line
-  process has already exited. The task payload is in a file, so cmd only
-  forwards three path arguments: node, helper, and task file.
-- Claude Code waits for the status-line process to exit before rendering its
-  output, so work done "after stdout" still delays the first paint. Keep any
-  post-render logic spawn-free or route it through this merged channel.
-- The helper finishes with a throttled prune pass (at most once per day): cache
-  json untouched for 30 days is deleted, as are `.refresh`, `.tmp`, and
-  `tasks/task-*.json` leftovers older than 1 hour.
+  their `.refresh` markers). After stdout is written, `flushRefreshTasks()` starts
+  a **single** background helper (`dist/runtime/bg.js`) to run them. When every
+  segment's cache is fresh the queue is empty and nothing is spawned, so the
+  common redraw path stays spawn-free.
+- The task list is passed as one JSON argv argument (no shell, no temp file), so
+  there are no `task-*.json` artifacts to leak.
+- The helper is spawned `detached` with `stdio: 'ignore'` on every platform, so
+  it outlives the parent and finishes writing the cache. On Windows do **not**
+  also set `windowsHide`: combining `detached` (`DETACHED_PROCESS`) with
+  `windowsHide` (`CREATE_NO_WINDOW`) is a conflicting flag pair that flashes a
+  console window. `detached` alone allocates no console and stays silent.
+- The helper cleans up on every run: orphaned `.refresh` / `.tmp` (and the legacy
+  `tasks/` dir) are removed immediately, and dead cache json (~30 days) is pruned
+  at most once per day.
