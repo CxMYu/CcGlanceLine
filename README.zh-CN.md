@@ -19,6 +19,12 @@
 
 **文档:** [概览](./docs/overview.zh-CN.md) · [字段与图标](./docs/segments.zh-CN.md) · [开发](./docs/development.zh-CN.md)
 
+## 终端字体
+
+终端建议使用 Nerd Font,避免 emoji、Nerd Font 图标、箭头和类进度符号宽度不一致。
+首选可以用 [Maple Mono NF](https://github.com/subframe7536/maple-font);
+需要更好的中文显示时用 `Maple Mono NF CN`。
+
 ## 安装
 
 ### 方式 A —— npm 全局安装(推荐)

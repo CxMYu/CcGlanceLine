@@ -19,6 +19,12 @@ model · effort · context · cache · git · session — all at a glance
 
 **Docs:** [Overview](./docs/overview.md) · [Segments & icons](./docs/segments.md) · [Development](./docs/development.md)
 
+## Terminal Font
+
+Use a Nerd Font in your terminal so emoji, Nerd Font icons, arrows, and box-like
+symbols keep consistent width. [Maple Mono NF](https://github.com/subframe7536/maple-font)
+is a good default; use `Maple Mono NF CN` if you want better CJK coverage.
+
 ## Install
 
 ### Option A — npm (global, recommended)
