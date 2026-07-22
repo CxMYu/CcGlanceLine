@@ -25,6 +25,12 @@ Use a Nerd Font in your terminal so emoji, Nerd Font icons, arrows, and box-like
 symbols keep consistent width. [Maple Mono NF](https://github.com/subframe7536/maple-font)
 is a good default; use `Maple Mono NF CN` if you want better CJK coverage.
 
+ccglance intentionally outputs standard Unicode emoji. A Nerd Font improves text
+metrics and symbol coverage, but color emoji are still rendered by the operating
+system's emoji font (for example Segoe UI Emoji on Windows, Apple Color Emoji on
+macOS, and Noto Color Emoji on many Linux desktops), so their artwork can differ
+across platforms.
+
 ## Install
 
 ### Option A — npm (global, recommended)

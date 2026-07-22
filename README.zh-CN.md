@@ -25,6 +25,10 @@
 首选可以用 [Maple Mono NF](https://github.com/subframe7536/maple-font);
 需要更好的中文显示时用 `Maple Mono NF CN`。
 
+ccglance 会固定输出标准 Unicode emoji。Nerd Font 可以改善文本宽度和符号覆盖,
+但彩色 emoji 仍由系统 emoji 字体渲染(例如 Windows 的 Segoe UI Emoji、
+macOS 的 Apple Color Emoji、很多 Linux 桌面的 Noto Color Emoji),所以不同平台的图案可能不同。
+
 ## 安装
 
 ### 方式 A —— npm 全局安装(推荐)
