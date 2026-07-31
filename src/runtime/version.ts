@@ -3,7 +3,7 @@ import path from 'path';
 import { cacheDir } from '../utils/paths';
 import { queueRefreshTask } from './refresh';
 
-const CACHE_TTL_MS = 4 * 3600 * 1000;
+const CACHE_TTL_MS = 2 * 3600 * 1000;
 const REFRESH_THROTTLE_MS = 60 * 1000;
 const cacheFile = path.join(cacheDir('version'), 'claude-code.json');
 const refreshFile = path.join(cacheDir('version'), 'claude-code.refresh');

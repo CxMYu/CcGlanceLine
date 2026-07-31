@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2 - 2026-07-31
+
+- Shorten the Claude Code version-check cache from 4h to 2h, so the update
+  hint (`↑latest`) surfaces sooner after a new Claude Code release.
+
 ## 1.1.1 - 2026-07-06
 
 - Faster status-line cold start: git and version refreshes are batched into a

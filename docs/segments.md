@@ -34,7 +34,7 @@ shows, all icon meanings, rate-limit levels and color semantics.
 | 🏷️ | session name | `session_name` | set via `--name` or `/rename` |
 | ⏱️ | session | `cost` | elapsed time + `+added` `-removed` lines |
 | 💰 | cost | `cost.total_cost_usd` | USD cost, shown only when greater than 0 |
-| 💩 | version | `version` | Claude Code version; appends `↑latest` when the 4h cache finds a newer release |
+| 💩 | version | `version` | Claude Code version; appends `↑latest` when the 2h cache finds a newer release |
 
 Rate-limit moon phases:
 

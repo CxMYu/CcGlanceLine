@@ -24,7 +24,7 @@ ccglance 展示什么、有哪些特性、环境要求、工作原理,以及缓�
 - **git 段** —— 分支、干净/脏/冲突标记、领先/落后计数；只跑一次有界 `git status`，并带短缓存。
 - **会话段** —— 耗时 + 新增/删除行数。
 - **Claude Code 版本 + 更新提示** —— 显示 stdin 里的 Claude Code `version`；
-  本地 4 小时缓存发现新版时追加 `↑latest`。刷新在 stdout 写出后异步进行，不阻塞状态栏。
+  本地 2 小时缓存发现新版时追加 `↑latest`。刷新在 stdout 写出后异步进行，不阻塞状态栏。
 - **额外会话信息** —— 5小时/7天配额、美元成本，以及 Claude Code 提供时显示在 git 分支右侧的 worktree 名。
 - **响应式多行布局** —— 读终端宽度(`COLUMNS`),把每行按能容纳的宽度自动折成多行;
   正确处理 CJK/emoji 显示宽度。
@@ -53,7 +53,7 @@ API key、Bedrock、Vertex 等按量/外部网关场景通常没有该字段，c
 上下文窗口、cost、workspace、版本……)从 **stdin** 传入。`ccglance` 用
 `fs.readFileSync(0)` 一次性读入、按固定行格式化并**先打印**；`status`
 只会读取 transcript 尾部固定字节。版本段同步阶段只读本地小缓存；stdout 写出之后，如果
-Claude Code 最新版缓存超过 4 小时，才 detached 后台刷新 npm registry。若 JSON 解析失败则
+Claude Code 最新版缓存超过 2 小时，才 detached 后台刷新 npm registry。若 JSON 解析失败则
 静默退出,绝不影响 CLI。来自 stdin、transcript、git 的文本在输出前会清理终端控制序列，
 避免逃逸到状态栏之外。主要外部调用是本地 `git`(单次有界 status 调用并带短缓存)、按需
 transcript 尾部读取，以及渲染后的后台版本检查。

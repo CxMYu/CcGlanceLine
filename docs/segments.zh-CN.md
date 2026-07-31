@@ -33,7 +33,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | 🏷️ | 会话名 | `session_name` | 由 `--name` 或 `/rename` 设置 |
 | ⏱️ | 会话 | `cost` | 耗时 + `+新增` `-删除` 行数 |
 | 💰 | cost | `cost.total_cost_usd` | 美元成本，大于 0 时显示 |
-| 💩 | 版本 | `version` | Claude Code 版本；4 小时缓存发现新版时追加 `↑latest` |
+| 💩 | 版本 | `version` | Claude Code 版本；2 小时缓存发现新版时追加 `↑latest` |
 
 配额月相映射：
 

@@ -28,7 +28,7 @@ Full segment / icon / color reference: [segments.md](./segments.md).
   using one bounded `git status` call plus a short local cache.
 - **Session segment** — elapsed time plus lines added/removed.
 - **Claude Code version + update hint** — shows the `version` field from
-  Claude Code stdin and appends `↑latest` when the 4h local cache reports a
+  Claude Code stdin and appends `↑latest` when the 2h local cache reports a
   newer Claude Code release. Refresh runs after stdout and never blocks.
 - **Additional session context** — 5h/7d rate-limit quota, USD cost and
   worktree name next to the git branch when Claude Code provides it.
@@ -65,7 +65,7 @@ fixed rows, and **prints them first**. The `status` segment reads only a
 bounded transcript tail. The version segment synchronously
 reads only a tiny local cache; after stdout is written, ccglance refreshes the
 Claude Code latest-version cache in a detached background process when it is
-older than 4 hours. If the JSON can't be parsed it exits silently so it can never
+older than 2 hours. If the JSON can't be parsed it exits silently so it can never
 break the CLI. Text from stdin, transcript, and git is sanitized before being
 printed so terminal control sequences cannot escape the status line. The main
 external calls are local `git` (single bounded status call with a short cache),
