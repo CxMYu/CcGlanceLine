@@ -161,12 +161,12 @@ test('latest statusline fields render while old fixtures remain optional', (t) =
     'Opus 5 1M',
     '👤 security-reviewer',
     '🧠 xhigh ⊘',
-    '⚠200k+',
     '🌲 manual-worktree',
     '🔀 #1234 ✓',
   ]) {
     assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+  assert.doesNotMatch(out, /200k/);
 });
 
 test('git branch updates immediately after branch switch', (t) => {

@@ -124,7 +124,6 @@ const context: SegmentFn = (ctx) => {
   if (o.percentOnly) return iconSeg(ctx, 'context', col, 'context', fmtPct(pct));
   const parts = [fmtPct(pct), `↓${fmtTokens(used)}`, `↑${fmtTokens(out)}`];
   if (remain != null) parts.push(`→${fmtTokens(remain)}`);
-  if (ctx.data.exceeds_200k_tokens) parts.push('⚠200k+');
   return iconSeg(ctx, 'context', col, 'context', parts.join(DOT));
 };
 

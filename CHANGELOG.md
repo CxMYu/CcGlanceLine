@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 - 2026-08-04
+
+- Stop rendering the redundant `⚠200k+` context badge; token usage and
+  percentage already communicate the same state more clearly.
+
 ## 1.2.0 - 2026-08-04
 
 - Keep legacy Claude Code status-line payloads unchanged while conditionally

@@ -16,7 +16,7 @@ shows, all icon meanings, rate-limit levels and color semantics.
 | 🧠 | effort / thinking | `effort.level`, `thinking.enabled` | reasoning effort; `⊘` is appended when thinking is explicitly disabled |
 | ✅/⏸️/💭/⚙️/🔧 | status | transcript tail | icon-only state; tool name while a tool is running |
 | 🚀 | fast | `fast_mode` | shown only when fast mode is on |
-| ⚡️ | context | `context_window`, `exceeds_200k_tokens` | usage % · input · output · tokens left; `⚠200k+` when the official threshold flag is set |
+| ⚡️ | context | `context_window` | usage % · input · output · tokens left |
 | 💾 | cache | `context_window.current_usage` | hit % · cache read · cache write |
 | 🎯 | style | `output_style.name` | active output style |
 

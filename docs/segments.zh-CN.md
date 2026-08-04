@@ -15,7 +15,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | 🧠 | effort / thinking | `effort.level`、`thinking.enabled` | 推理强度；thinking 明确关闭时追加 `⊘` |
 | ✅/⏸️/💭/⚙️/🔧 | 状态 | transcript 尾部 | 仅图标显示状态；工具运行时显示工具名 |
 | 🚀 | fast | `fast_mode` | 仅 fast 模式开启时显示 |
-| ⚡️ | 上下文 | `context_window`、`exceeds_200k_tokens` | 占比 · 输入 · 输出 · 剩余；官方阈值字段为真时显示 `⚠200k+` |
+| ⚡️ | 上下文 | `context_window` | 占比 · 输入 · 输出 · 剩余 |
 | 💾 | 缓存 | `context_window.current_usage` | 命中率 · 缓存读取 · 缓存写入 |
 | 🎯 | 输出风格 | `output_style.name` | 当前 output style |
 
