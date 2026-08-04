@@ -89,6 +89,10 @@ node dist/cli.js preview
 }
 ```
 
+Claude Code >= 2.1.97 可在 `statusLine` 内可选增加 `"refreshInterval": 30`，
+让会话时长、配额重置、版本提示等时间相关字段在主会话空闲时也能更新。
+若需兼容更旧的 Claude Code，保持上面的基础配置即可。
+
 若未全局安装,直接用 Node 指向编译后的文件:
 
 ```json

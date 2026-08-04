@@ -5,9 +5,9 @@ export const DEFAULT_SPEC: StatuslineSpec = {
     mode: 'responsive',
     separator: ' | ',
     rows: [
-      ['model', 'effort', 'status', 'fast', 'context', 'cache', 'style'], // 运行时
+      ['model', 'agent', 'effort', 'status', 'fast', 'context', 'cache', 'style'], // 运行时
       ['rate_limits'],                                                    // 订阅(无订阅→整行消失)
-      ['dir', 'git', 'session_name', 'session', 'cost', 'version'], // 项目/会话
+      ['dir', 'git', 'pr', 'session_name', 'session', 'cost', 'version'], // 项目/会话
     ],
     minWidth: 80,
   },
@@ -18,6 +18,7 @@ export const DEFAULT_SPEC: StatuslineSpec = {
       statusIcons: { idle: '✅', paused: '⏸️', thinking: '💭', working: '⚙️', tool: '🔧' },
     },
     model: { enabled: true },
+    agent: { enabled: true },
     effort: { enabled: true },
     fast: { enabled: true },
     context: { enabled: true, percentOnly: false, warnPct: 75, dangerPct: 90 },
@@ -33,6 +34,7 @@ export const DEFAULT_SPEC: StatuslineSpec = {
     style: { enabled: true },
     dir: { enabled: true, fullPath: false },
     git: { enabled: true, ttlMs: 20 * 60 * 1000 },
+    pr: { enabled: true },
     session_name: { enabled: true },
     session: { enabled: true },
     cost: { enabled: true },

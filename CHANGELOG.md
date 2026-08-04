@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 - 2026-08-04
+
+- Keep legacy Claude Code status-line payloads unchanged while conditionally
+  supporting current `thinking`, `agent`, PR, 200k-threshold, and general Git
+  worktree fields.
+- Check the official Claude Code rolling-latest endpoint first, with the npm
+  registry retained as a compatibility fallback.
+- Document optional idle refresh for Claude Code 2.1.97+ and add a current-schema
+  fixture without dropping older regression fixtures.
+
 ## 1.1.2 - 2026-07-31
 
 - Shorten the Claude Code version-check cache from 4h to 2h, so the update

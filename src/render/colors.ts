@@ -16,7 +16,7 @@ export const paint = (code: number, s: string, bold = false): string =>
 
 export const C = {
   // 第一行（运行时）
-  model: CYAN, effort: YELLOW, fast: GREEN,
+  model: CYAN, agent: MAGENTA, effort: YELLOW, fast: GREEN,
   ctx: MAGENTA, cache: GREEN, style: CYAN,
   rate: CYAN,                       // rate_limits 主图标/标签
   rateReset: YELLOW,                // 配额重置时间
@@ -32,6 +32,7 @@ export const C = {
   name: MAGENTA, dirIcon: YELLOW, dirText: GREEN, git: WHITE,
   gitClean: GREEN, gitDirty: BLUE, gitConflict: RED,
   gitAhead: GREEN, gitBehind: BLUE,
+  pr: CYAN, prApproved: GREEN, prPending: YELLOW, prChanges: RED, prDraft: WHITE,
   sess: CYAN, add: GREEN, del: RED,
   cost: YELLOW,                     // 美元成本
   wt: GREEN,                        // worktree

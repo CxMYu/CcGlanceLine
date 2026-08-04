@@ -1,11 +1,13 @@
 export type IconId =
   | 'model' | 'dir' | 'git' | 'context' | 'cache' | 'rate_limits'
-  | 'fast' | 'style' | 'session' | 'cost' | 'version';
+  | 'agent' | 'pr' | 'fast' | 'style' | 'session' | 'cost' | 'version';
 
 const ICONS: Record<IconId, string> = {
   model: '🤖',
+  agent: '👤',
   dir: '📁',
   git: '🌿',
+  pr: '🔀',
   context: '⚡️',
   cache: '💾',
   rate_limits: '📊',

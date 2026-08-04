@@ -10,7 +10,7 @@ test('stripAnsi removes color escape sequences', () => {
 });
 
 test('status emoji keep expected display width', () => {
-  for (const glyph of ['✅', '⏸️', '💭', '⚙️', '🔧', '🌑', '🌒', '🌓', '🌔', '🌕']) {
+  for (const glyph of ['✅', '⏸️', '💭', '⚙️', '🔧', '👤', '🔀', '🌑', '🌒', '🌓', '🌔', '🌕']) {
     assert.equal(stringWidth(glyph), 2, glyph);
   }
 });

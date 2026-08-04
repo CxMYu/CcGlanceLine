@@ -12,8 +12,9 @@ import { readStdinData } from './readers';
 
 // preview 子命令用的内置样例（覆盖默认状态栏会展示的常规字段）
 const PREVIEW_SAMPLE: StdinData = {
-  model: { display_name: 'Opus 4.8', id: 'claude-opus-4-8[1m]' },
+  model: { display_name: 'Opus 5', id: 'claude-opus-5[1m]' },
   effort: { level: 'high' },
+  thinking: { enabled: true },
   fast_mode: true,
   context_window: {
     context_window_size: 1000000, total_input_tokens: 235000, total_output_tokens: 1200,
@@ -29,7 +30,7 @@ const PREVIEW_SAMPLE: StdinData = {
   worktree: { name: 'main', branch: 'main' },
   session_name: 'ccglance',
   cost: { total_cost_usd: 0.1234, total_duration_ms: 192000, total_lines_added: 156, total_lines_removed: 23 },
-  version: '2.0.1',
+  version: '2.1.221',
 };
 
 const argv = process.argv.slice(2);

@@ -10,6 +10,20 @@ export interface Effort {
   level?: string;
 }
 
+export interface Thinking {
+  enabled?: boolean;
+}
+
+export interface Agent {
+  name?: string;
+}
+
+export interface PullRequest {
+  number?: number;
+  url?: string;
+  review_state?: string;
+}
+
 export interface CurrentUsage {
   input_tokens?: number;
   output_tokens?: number;
@@ -84,7 +98,10 @@ export interface StdinData {
   // 运行时
   model?: Model;
   effort?: Effort;
+  thinking?: Thinking;
+  agent?: Agent;
   fast_mode?: boolean;
+  exceeds_200k_tokens?: boolean;
   context_window?: ContextWindow;
   output_style?: OutputStyle;
   rate_limits?: RateLimits;
@@ -92,6 +109,7 @@ export interface StdinData {
   workspace?: Workspace;
   session_name?: string;
   cost?: Cost;
+  pr?: PullRequest;
   worktree?: Worktree;
   vim?: Vim;
 }

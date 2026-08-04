@@ -89,8 +89,19 @@ const model: SegmentFn = (ctx) =>
   ctx.data.model && (ctx.data.model.display_name || ctx.data.model.id)
     ? iconSeg(ctx, 'model', C.model, 'model', modelName(ctx.data.model)) : null;
 
-const effort: SegmentFn = ({ data }) =>
-  data.effort && data.effort.level ? seg(C.effort, '🧠', data.effort.level) : null;
+const agent: SegmentFn = (ctx) =>
+  ctx.data.agent?.name ? iconSeg(ctx, 'agent', C.agent, 'agent', ctx.data.agent.name) : null;
+
+// 旧版只有 effort.level；新版额外提供 thinking.enabled。字段缺失时保持旧输出。
+const effort: SegmentFn = ({ data }) => {
+  const level = data.effort?.level;
+  const thinking = data.thinking?.enabled;
+  if (!level && thinking == null) return null;
+  const text = level
+    ? `${level}${thinking === false ? ' ⊘' : ''}`
+    : thinking ? '✓' : '⊘';
+  return seg(C.effort, '🧠', text);
+};
 
 const fast: SegmentFn = (ctx) =>
   ctx.data.fast_mode ? iconSeg(ctx, 'fast', C.fast, 'fast', 'fast') : null;
@@ -113,6 +124,7 @@ const context: SegmentFn = (ctx) => {
   if (o.percentOnly) return iconSeg(ctx, 'context', col, 'context', fmtPct(pct));
   const parts = [fmtPct(pct), `↓${fmtTokens(used)}`, `↑${fmtTokens(out)}`];
   if (remain != null) parts.push(`→${fmtTokens(remain)}`);
+  if (ctx.data.exceeds_200k_tokens) parts.push('⚠200k+');
   return iconSeg(ctx, 'context', col, 'context', parts.join(DOT));
 };
 
@@ -200,7 +212,23 @@ const git: SegmentFn = (ctx) => {
   const cwd = (ctx.data.workspace && ctx.data.workspace.current_dir) || ctx.data.cwd || '';
   if (!cwd) return null;
   const { gitSegment } = require('../runtime/git') as typeof import('../runtime/git');
-  return gitSegment(cwd, optIcon(ctx, 'git', 'git'), opt(ctx, 'git'), ctx.data.worktree?.branch, ctx.data.worktree?.name);
+  const worktreeName = ctx.data.worktree?.name || ctx.data.workspace?.git_worktree;
+  return gitSegment(cwd, optIcon(ctx, 'git', 'git'), opt(ctx, 'git'), ctx.data.worktree?.branch, worktreeName);
+};
+
+const pr: SegmentFn = (ctx) => {
+  const number = ctx.data.pr?.number;
+  if (typeof number !== 'number' || !Number.isFinite(number) || number <= 0) return null;
+  const state = ctx.data.pr?.review_state;
+  const states: Record<string, { glyph: string; color: number }> = {
+    approved: { glyph: '✓', color: C.prApproved },
+    pending: { glyph: '○', color: C.prPending },
+    changes_requested: { glyph: '!', color: C.prChanges },
+    draft: { glyph: '◌', color: C.prDraft },
+  };
+  const review = state ? states[state] : undefined;
+  const text = `#${number}${review ? ` ${review.glyph}` : ''}`;
+  return iconSeg(ctx, 'pr', review?.color ?? C.pr, 'pr', text);
 };
 
 const sessionName: SegmentFn = ({ data }) =>
@@ -235,9 +263,9 @@ const version: SegmentFn = (ctx) => {
 
 export const SEGMENTS: Record<string, SegmentFn> = {
   // 运行时
-  status, model, effort, fast, context, cache, style,
+  status, model, agent, effort, fast, context, cache, style,
   // 订阅
   rate_limits: rateLimits,
   // 项目 / 会话
-  dir, git, session_name: sessionName, session, cost, version,
+  dir, git, pr, session_name: sessionName, session, cost, version,
 };

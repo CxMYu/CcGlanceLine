@@ -102,21 +102,39 @@ function runVersionTask(cacheFile: string, done: () => void): void {
     done();
   };
 
-  try {
-    const https = require('https') as typeof import('https');
-    const req = https.get('https://registry.npmjs.org/@anthropic-ai/claude-code/latest', (r) => {
-      if (r.statusCode !== 200) { r.resume(); return finish(''); }
-      let d = '';
-      r.on('data', (c) => { d += c; });
-      r.on('end', () => {
-        try { finish((JSON.parse(d) as { version?: string }).version || ''); } catch { finish(''); }
+  const requestVersion = (url: string, parse: (body: string) => string, callback: (version: string) => void): void => {
+    let settled = false;
+    const settle = (version: string): void => {
+      if (settled) return;
+      settled = true;
+      callback(version);
+    };
+    try {
+      const https = require('https') as typeof import('https');
+      const req = https.get(url, (r) => {
+        if (r.statusCode !== 200) { r.resume(); return settle(''); }
+        let d = '';
+        r.on('data', (c) => { d += c; });
+        r.on('end', () => {
+          try { settle(parse(d)); } catch { settle(''); }
+        });
       });
-    });
-    req.on('error', () => finish(''));
-    req.setTimeout(5000, () => { req.destroy(); finish(''); });
-  } catch {
-    finish('');
-  }
+      req.on('error', () => settle(''));
+      req.setTimeout(5000, () => { req.destroy(); settle(''); });
+    } catch {
+      settle('');
+    }
+  };
+
+  // Claude Code 新版优先跟随官方 rolling-latest 端点；旧版/npm 发布链仍作回退。
+  requestVersion('https://downloads.claude.ai/claude-code-releases/latest', (body) => {
+    const version = body.trim();
+    return /^\d+\.\d+\.\d+$/.test(version) ? version : '';
+  }, (official) => {
+    if (official) return finish(official);
+    requestVersion('https://registry.npmjs.org/@anthropic-ai/claude-code/latest', (body) =>
+      (JSON.parse(body) as { version?: string }).version || '', finish);
+  });
 }
 
 // 每次运行都做的轻清理：删除过期的孤儿瞬时产物（.refresh / .tmp），以及历史遗留的

@@ -8,9 +8,9 @@ What ccglance shows, its features, requirements, how it works, and where it cach
 
 Three logical rows; any row with no data disappears:
 
-1. **Runtime** — 🤖 model · 🧠 effort · status · 🚀 fast · ⚡️ context · 💾 cache · 🎯 style
+1. **Runtime** — 🤖 model · 👤 agent · 🧠 effort/thinking · status · 🚀 fast · ⚡️ context · 💾 cache · 🎯 style
 2. **Quota** *(subscription sessions only)* — 📊 Hour / Week rate-limit meters
-3. **Project / session** — 📁 dir · 🌿 git · 🏷️ session name · ⏱️ session · 💰 cost · 💩 version
+3. **Project / session** — 📁 dir · 🌿 git · 🔀 PR · 🏷️ session name · ⏱️ session · 💰 cost · 💩 version
 
 Full segment / icon / color reference: [segments.md](./segments.md).
 
@@ -50,6 +50,9 @@ Claude Code compatibility:
 |---|---|
 | >= 1.0.71 | Basic status-line stdin support |
 | >= 2.1.80 | Subscription quota row when official `rate_limits.five_hour` / `rate_limits.seven_day` fields are present |
+| >= 2.1.97 | General Git worktree name through `workspace.git_worktree`; optional `refreshInterval` is available |
+| >= 2.1.119 | Thinking on/off state when `thinking.enabled` is present |
+| >= 2.1.145 | PR number and review state when Claude Code detects an open pull request |
 | >= 2.1.153 | Preferred terminal-width sizing through `COLUMNS` / `LINES`; older versions fall back to TTY width or 80 columns |
 
 The quota row is subscription-only. Claude.ai Pro/Max-style sessions can expose
@@ -65,11 +68,13 @@ fixed rows, and **prints them first**. The `status` segment reads only a
 bounded transcript tail. The version segment synchronously
 reads only a tiny local cache; after stdout is written, ccglance refreshes the
 Claude Code latest-version cache in a detached background process when it is
-older than 2 hours. If the JSON can't be parsed it exits silently so it can never
+older than 2 hours. The background check uses Claude Code's official
+rolling-latest endpoint first and falls back to the npm registry. If the JSON
+can't be parsed it exits silently so it can never
 break the CLI. Text from stdin, transcript, and git is sanitized before being
 printed so terminal control sequences cannot escape the status line. The main
 external calls are local `git` (single bounded status call with a short cache),
-bounded transcript-tail reads, and the post-render detached npm registry check.
+bounded transcript-tail reads, and the post-render detached version check.
 
 ## Cache files
 

@@ -8,9 +8,9 @@ ccglance 展示什么、有哪些特性、环境要求、工作原理,以及缓�
 
 三个逻辑行,任意一行无数据时自动消失:
 
-1. **运行时** —— 🤖 模型 · 🧠 effort · 状态 · 🚀 fast · ⚡️ 上下文 · 💾 缓存 · 🎯 风格
+1. **运行时** —— 🤖 模型 · 👤 agent · 🧠 effort/thinking · 状态 · 🚀 fast · ⚡️ 上下文 · 💾 缓存 · 🎯 风格
 2. **配额**(仅订阅会话)—— 📊 Hour / Week 配额仪表
-3. **项目 / 会话** —— 📁 目录 · 🌿 git · 🏷️ 会话名 · ⏱️ 会话 · 💰 成本 · 💩 版本
+3. **项目 / 会话** —— 📁 目录 · 🌿 git · 🔀 PR · 🏷️ 会话名 · ⏱️ 会话 · 💰 成本 · 💩 版本
 
 完整字段 / 图标 / 颜色参考:[segments.zh-CN.md](./segments.zh-CN.md)。
 
@@ -41,6 +41,9 @@ Claude Code 兼容性：
 |---|---|
 | >= 1.0.71 | 支持基础 statusline stdin |
 | >= 2.1.80 | 官方 `rate_limits.five_hour` / `rate_limits.seven_day` 字段存在时显示订阅配额行 |
+| >= 2.1.97 | 通过 `workspace.git_worktree` 显示普通 Git worktree 名；可选使用 `refreshInterval` |
+| >= 2.1.119 | `thinking.enabled` 存在时显示 thinking 开关状态 |
+| >= 2.1.145 | Claude Code 检测到开放 PR 时显示编号和审查状态 |
 | >= 2.1.153 | 优先使用 `COLUMNS` / `LINES` 做终端宽度适配；更旧版本回退到 TTY 宽度或 80 列 |
 
 配额行只面向订阅场景。Claude.ai Pro/Max 这类订阅会话可能提供 `rate_limits`；
@@ -53,7 +56,8 @@ API key、Bedrock、Vertex 等按量/外部网关场景通常没有该字段，c
 上下文窗口、cost、workspace、版本……)从 **stdin** 传入。`ccglance` 用
 `fs.readFileSync(0)` 一次性读入、按固定行格式化并**先打印**；`status`
 只会读取 transcript 尾部固定字节。版本段同步阶段只读本地小缓存；stdout 写出之后，如果
-Claude Code 最新版缓存超过 2 小时，才 detached 后台刷新 npm registry。若 JSON 解析失败则
+Claude Code 最新版缓存超过 2 小时，才 detached 后台查官方 rolling-latest 端点，
+失败时回退 npm registry。若 JSON 解析失败则
 静默退出,绝不影响 CLI。来自 stdin、transcript、git 的文本在输出前会清理终端控制序列，
 避免逃逸到状态栏之外。主要外部调用是本地 `git`(单次有界 status 调用并带短缓存)、按需
 transcript 尾部读取，以及渲染后的后台版本检查。

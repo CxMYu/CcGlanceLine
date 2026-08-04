@@ -1,0 +1,55 @@
+{
+  "session_id": "fixture-latest",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+  "model": {
+    "display_name": "Claude Opus 5 (1M context)",
+    "id": "claude-opus-5[1m]"
+  },
+  "agent": {
+    "name": "security-reviewer"
+  },
+  "effort": {
+    "level": "xhigh"
+  },
+  "thinking": {
+    "enabled": false
+  },
+  "context_window": {
+    "context_window_size": 1000000,
+    "total_input_tokens": 235000,
+    "total_output_tokens": 1200,
+    "used_percentage": 23.5,
+    "remaining_percentage": 76.5,
+    "current_usage": {
+      "input_tokens": 47000,
+      "output_tokens": 1200,
+      "cache_read_input_tokens": 172000,
+      "cache_creation_input_tokens": 16000
+    }
+  },
+  "exceeds_200k_tokens": true,
+  "workspace": {
+    "current_dir": "/tmp/ccglance-latest",
+    "project_dir": "/tmp/ccglance-latest",
+    "added_dirs": [],
+    "git_worktree": "manual-worktree",
+    "repo": {
+      "host": "github.com",
+      "owner": "CxMYu",
+      "name": "CcGlanceLine"
+    }
+  },
+  "pr": {
+    "number": 1234,
+    "url": "https://github.com/CxMYu/CcGlanceLine/pull/1234",
+    "review_state": "approved"
+  },
+  "cost": {
+    "total_cost_usd": 0.01234,
+    "total_duration_ms": 45000,
+    "total_api_duration_ms": 2300,
+    "total_lines_added": 12,
+    "total_lines_removed": 3
+  },
+  "version": "2.1.221"
+}

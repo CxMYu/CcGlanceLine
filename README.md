@@ -95,6 +95,11 @@ Add a `statusLine` block to `~/.claude/settings.json`:
 }
 ```
 
+On Claude Code >= 2.1.97, you can optionally add `"refreshInterval": 30`
+inside `statusLine` to keep elapsed time, quota resets, version hints, and other
+time-based fields moving while the main session is idle. Keep the base block
+above when compatibility with older Claude Code versions matters.
+
 If you didn't install globally, point Node at the compiled file directly:
 
 ```json

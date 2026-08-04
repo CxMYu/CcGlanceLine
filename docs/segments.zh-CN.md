@@ -10,11 +10,12 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 
 | 标识 | 段 | 来源 | 展示 |
 |---|---|---|---|
-| 🤖 | 模型 | `model.display_name`，缺失时回退 `model.id` | stdin display name 只做轻量压缩(`Opus 4.8 1M`)；缺失时用可读 id 兜底 |
-| 🧠 | effort | `effort.level` | 推理强度 |
+| 🤖 | 模型 | `model.display_name`，缺失时回退 `model.id` | stdin display name 只做轻量压缩(`Opus 5 1M`)；缺失时用可读 id 兜底 |
+| 👤 | agent | `agent.name` | 当前主 agent 名；字段缺失时隐藏 |
+| 🧠 | effort / thinking | `effort.level`、`thinking.enabled` | 推理强度；thinking 明确关闭时追加 `⊘` |
 | ✅/⏸️/💭/⚙️/🔧 | 状态 | transcript 尾部 | 仅图标显示状态；工具运行时显示工具名 |
 | 🚀 | fast | `fast_mode` | 仅 fast 模式开启时显示 |
-| ⚡️ | 上下文 | `context_window` | 占比 · 输入 · 输出 · 剩余 |
+| ⚡️ | 上下文 | `context_window`、`exceeds_200k_tokens` | 占比 · 输入 · 输出 · 剩余；官方阈值字段为真时显示 `⚠200k+` |
 | 💾 | 缓存 | `context_window.current_usage` | 命中率 · 缓存读取 · 缓存写入 |
 | 🎯 | 输出风格 | `output_style.name` | 当前 output style |
 
@@ -29,7 +30,8 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | 图标 | 段 | 来源 | 展示 |
 |---|---|---|---|
 | 📁 | 目录 | `workspace.current_dir` | 当前目录名 |
-| 🌿 / 🌲 | git + worktree | stdin + 本地 `git` | 分支 + 状态标记：`✓` 干净、`●` 有未提交变更、`⚠` 有冲突；另含 `↑领先` `↓落后`；`worktree.name` 追加在分支状态右侧 |
+| 🌿 / 🌲 | git + worktree | stdin + 本地 `git` | 分支 + 状态标记：`✓` 干净、`●` 有未提交变更、`⚠` 有冲突；另含 `↑领先` `↓落后`；优先用 `worktree.name`，缺失时回退 `workspace.git_worktree` |
+| 🔀 | PR | `pr.number`、`pr.review_state` | PR 编号，以及 `✓` 已批准、`○` 待审、`!` 需修改或 `◌` 草稿 |
 | 🏷️ | 会话名 | `session_name` | 由 `--name` 或 `/rename` 设置 |
 | ⏱️ | 会话 | `cost` | 耗时 + `+新增` `-删除` 行数 |
 | 💰 | cost | `cost.total_cost_usd` | 美元成本，大于 0 时显示 |
@@ -50,6 +52,8 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | 图标 | 含义 |
 |---|---|
 | 🤖 | 模型名；以 `model.display_name` 为准，缺失时用可读 `model.id` 兜底 |
+| 👤 | 当前主 agent 名 |
+| ⊘ | extended thinking 已明确关闭 |
 | 🧠 | 推理强度 |
 | ✅ | 空闲；最近一轮 assistant 输出已完成 |
 | ⏸️ | 暂停；正在执行的动作被用户中断或取消 |
@@ -65,6 +69,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | ⏳ | 距离当前配额窗口重置的时间 |
 | 📁 | 当前目录 |
 | 🌿 | git 分支 |
+| 🔀 | PR 编号与审查状态 |
 | ✓ ● ⚠ | git 干净 / 有未提交变更 / 有冲突 |
 | 🌲 | worktree 名，显示在 git 段内 |
 | 🏷️ | 会话名 |

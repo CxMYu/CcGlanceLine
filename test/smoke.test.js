@@ -95,7 +95,7 @@ test('preview covers default display segments without fake optional fields', () 
   assert.equal(result.status, 0);
   const out = stripAnsi(result.stdout);
   for (const expected of [
-    'Opus 4.8 1M',
+    'Opus 5 1M',
     'high',
     '✅',
     'fast',
@@ -106,7 +106,7 @@ test('preview covers default display segments without fake optional fields', () 
     '🌿 main 🌲 main',
     '🌲 main',
     '$0.123',
-    'v2.0.1',
+    'v2.1.221',
   ]) {
     assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -141,6 +141,31 @@ test('model display prefers stdin display_name and falls back to readable id', (
     delete data.version;
     data.model = model;
     assert.match(renderData(data), new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
+test('latest statusline fields render while old fixtures remain optional', (t) => {
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'ccglance-latest-fields-test-'));
+  const init = runGit(['init', '--quiet'], repo);
+  if (init.status !== 0) {
+    t.skip('git is not available');
+    return;
+  }
+
+  const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'latest.json'), 'utf8'));
+  delete data.version;
+  data.workspace.current_dir = repo;
+
+  const out = renderData(data);
+  for (const expected of [
+    'Opus 5 1M',
+    '👤 security-reviewer',
+    '🧠 xhigh ⊘',
+    '⚠200k+',
+    '🌲 manual-worktree',
+    '🔀 #1234 ✓',
+  ]) {
+    assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });
 

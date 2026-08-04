@@ -11,11 +11,12 @@ shows, all icon meanings, rate-limit levels and color semantics.
 
 | Label | Segment | Source | Shows |
 |---|---|---|---|
-| 🤖 | model | `model.display_name`, fallback to `model.id` | stdin display name with minimal compacting (`Opus 4.8 1M`); readable id fallback when missing |
-| 🧠 | effort | `effort.level` | reasoning effort |
+| 🤖 | model | `model.display_name`, fallback to `model.id` | stdin display name with minimal compacting (`Opus 5 1M`); readable id fallback when missing |
+| 👤 | agent | `agent.name` | active main-agent name; hidden when absent |
+| 🧠 | effort / thinking | `effort.level`, `thinking.enabled` | reasoning effort; `⊘` is appended when thinking is explicitly disabled |
 | ✅/⏸️/💭/⚙️/🔧 | status | transcript tail | icon-only state; tool name while a tool is running |
 | 🚀 | fast | `fast_mode` | shown only when fast mode is on |
-| ⚡️ | context | `context_window` | usage % · input · output · tokens left |
+| ⚡️ | context | `context_window`, `exceeds_200k_tokens` | usage % · input · output · tokens left; `⚠200k+` when the official threshold flag is set |
 | 💾 | cache | `context_window.current_usage` | hit % · cache read · cache write |
 | 🎯 | style | `output_style.name` | active output style |
 
@@ -30,7 +31,8 @@ shows, all icon meanings, rate-limit levels and color semantics.
 | Icon | Segment | Source | Shows |
 |---|---|---|---|
 | 📁 | dir | `workspace.current_dir` | current directory name |
-| 🌿 / 🌲 | git + worktree | stdin + local `git` | branch + status glyph: `✓` clean, `●` dirty, `⚠` conflicts; plus `↑ahead` `↓behind`; `worktree.name` is appended after the branch state |
+| 🌿 / 🌲 | git + worktree | stdin + local `git` | branch + status glyph: `✓` clean, `●` dirty, `⚠` conflicts; plus `↑ahead` `↓behind`; uses `worktree.name`, falling back to `workspace.git_worktree` |
+| 🔀 | pull request | `pr.number`, `pr.review_state` | PR number plus `✓` approved, `○` pending, `!` changes requested, or `◌` draft |
 | 🏷️ | session name | `session_name` | set via `--name` or `/rename` |
 | ⏱️ | session | `cost` | elapsed time + `+added` `-removed` lines |
 | 💰 | cost | `cost.total_cost_usd` | USD cost, shown only when greater than 0 |
@@ -51,6 +53,8 @@ Rate-limit moon phases:
 | Icon | Meaning |
 |---|---|
 | 🤖 | model name; `model.display_name` is the source of truth, with readable `model.id` fallback |
+| 👤 | active main-agent name |
+| ⊘ | extended thinking is explicitly disabled |
 | 🧠 | reasoning effort |
 | ✅ | idle; the last assistant turn appears complete |
 | ⏸️ | paused; a running action was interrupted or cancelled |
@@ -66,6 +70,7 @@ Rate-limit moon phases:
 | ⏳ | time until the quota window resets |
 | 📁 | current directory |
 | 🌿 | git branch |
+| 🔀 | pull request number and review state |
 | ✓ ● ⚠ | git clean / dirty / conflict |
 | 🌲 | worktree name, shown inside the git segment |
 | 🏷️ | session name |
