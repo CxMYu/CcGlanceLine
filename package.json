@@ -1,6 +1,6 @@
 {
   "name": "@cxmyu/ccglance",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A fast, zero-dependency, multi-line status line for Claude Code — model, effort, context, cache, git and session, all at a glance.",
   "bin": {
     "ccglance": "dist/cli.js"
@@ -13,7 +13,8 @@
   "type": "commonjs",
   "files": [
     "dist",
-    "docs/assets/preview.png"
+    "docs/assets/preview-windows.png",
+    "docs/assets/preview-macos.png"
   ],
   "engines": {
     "node": ">=22"

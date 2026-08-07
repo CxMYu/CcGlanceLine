@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.2 - 2026-08-07
+
+- Replace the outdated single preview with separate Windows 11 and macOS
+  renders that preserve each platform's actual emoji artwork, and include both
+  assets in the published package.
+- Clarify that Claude Code's `subagentStatusLine` uses a separate task-batch
+  protocol; ccglance continues to target the main `statusLine` payload.
+
 ## 1.2.1 - 2026-08-04
 
 - Stop rendering the redundant `⚠200k+` context badge; token usage and

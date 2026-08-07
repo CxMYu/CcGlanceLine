@@ -11,7 +11,13 @@
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/CxMYu/CcGlanceLine)
 
-![ccglance 预览](./docs/assets/preview.png)
+**Windows 11 · Segoe UI Emoji**
+
+![ccglance 在 Windows 11 上的效果](./docs/assets/preview-windows.png)
+
+**macOS · Apple Color Emoji**
+
+![ccglance 在 macOS 上的效果](./docs/assets/preview-macos.png)
 
 </div>
 
@@ -28,6 +34,7 @@
 ccglance 会固定输出标准 Unicode emoji。Nerd Font 可以改善文本宽度和符号覆盖,
 但彩色 emoji 仍由系统 emoji 字体渲染(例如 Windows 的 Segoe UI Emoji、
 macOS 的 Apple Color Emoji、很多 Linux 桌面的 Noto Color Emoji),所以不同平台的图案可能不同。
+上面两张效果图使用完全相同的 ccglance 文本、颜色与间距,只有平台 emoji 字体不同。
 
 ## 安装
 

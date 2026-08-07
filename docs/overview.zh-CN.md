@@ -46,6 +46,10 @@ Claude Code 兼容性：
 | >= 2.1.145 | Claude Code 检测到开放 PR 时显示编号和审查状态 |
 | >= 2.1.153 | 优先使用 `COLUMNS` / `LINES` 做终端宽度适配；更旧版本回退到 TTY 宽度或 80 列 |
 
+Claude Code 的 `subagentStatusLine` 是另一套独立命令协议:它一次接收一批 `tasks`,
+再为每个要自定义的 agent 行输出一行 JSON。它不是主 `statusLine` payload 的新增字段;
+ccglance 当前只面向主状态栏。
+
 配额行只面向订阅场景。Claude.ai Pro/Max 这类订阅会话可能提供 `rate_limits`；
 API key、Bedrock、Vertex 等按量/外部网关场景通常没有该字段，ccglance 会隐藏配额行，
 不会自行推断或伪造。

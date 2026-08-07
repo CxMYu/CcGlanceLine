@@ -11,7 +11,13 @@ model · effort · context · cache · git · session — all at a glance
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/CxMYu/CcGlanceLine)
 
-![ccglance preview](./docs/assets/preview.png)
+**Windows 11 · Segoe UI Emoji**
+
+![ccglance on Windows 11](./docs/assets/preview-windows.png)
+
+**macOS · Apple Color Emoji**
+
+![ccglance on macOS](./docs/assets/preview-macos.png)
 
 </div>
 
@@ -29,7 +35,8 @@ ccglance intentionally outputs standard Unicode emoji. A Nerd Font improves text
 metrics and symbol coverage, but color emoji are still rendered by the operating
 system's emoji font (for example Segoe UI Emoji on Windows, Apple Color Emoji on
 macOS, and Noto Color Emoji on many Linux desktops), so their artwork can differ
-across platforms.
+across platforms. The two previews above use the same ccglance text, colors, and
+spacing; only the platform emoji font changes.
 
 ## Install
 

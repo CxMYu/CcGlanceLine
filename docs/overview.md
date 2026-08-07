@@ -55,6 +55,11 @@ Claude Code compatibility:
 | >= 2.1.145 | PR number and review state when Claude Code detects an open pull request |
 | >= 2.1.153 | Preferred terminal-width sizing through `COLUMNS` / `LINES`; older versions fall back to TTY width or 80 columns |
 
+Claude Code's `subagentStatusLine` is a separate command protocol: it receives a
+batch of `tasks` and writes one JSON line per customized agent row. It is not a
+new field in the main `statusLine` payload, and ccglance currently targets the
+main status line only.
+
 The quota row is subscription-only. Claude.ai Pro/Max-style sessions can expose
 `rate_limits`; API-key, Bedrock, Vertex, and other usage-based sessions usually
 do not, so ccglance hides the quota row instead of inferring one.
