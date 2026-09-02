@@ -20,12 +20,14 @@ ccglance 展示什么、有哪些特性、环境要求、工作原理,以及缓�
 - **运行时零依赖** —— 仅用 Node 标准库;TypeScript 仅为构建期工具,不进发布包。
 - **stdin 优先** —— 核心段消费 Claude Code 提供的 JSON；status 只读 transcript 尾部固定字节。
 - **上下文块** —— 占用百分比、本轮输入/输出 token、剩余 token。
-- **缓存块** —— 缓存命中率、读取/写入 token。
+- **缓存块** —— 会话缓存命中率、最近一次读取/写入 token，以及热缓存剩余时间或冷缓存重建量；
+  旧版 payload 继续使用单次请求命中率。
 - **git 段** —— 分支、干净/脏/冲突标记、领先/落后计数；只跑一次有界 `git status`，并带短缓存。
 - **会话段** —— 耗时 + 新增/删除行数。
 - **Claude Code 版本 + 更新提示** —— 显示 stdin 里的 Claude Code `version`；
   本地 2 小时缓存发现新版时追加 `↑latest`。刷新在 stdout 写出后异步进行，不阻塞状态栏。
-- **额外会话信息** —— 5小时/7天配额、美元成本，以及 Claude Code 提供时显示在 git 分支右侧的 worktree 名。
+- **额外会话信息** —— 5小时/7天配额、可选的企业网关消费 Limit、美元成本，以及 Claude Code
+  提供时显示在 git 分支右侧的 worktree 名。
 - **响应式多行布局** —— 读终端宽度(`COLUMNS`),把每行按能容纳的宽度自动折成多行;
   正确处理 CJK/emoji 显示宽度。
 - **固定内置风格** —— 不读取用户配置文件，也不读取外部样式文件；状态栏使用 ccglance 自己的 emoji 优先风格。
@@ -45,14 +47,15 @@ Claude Code 兼容性：
 | >= 2.1.119 | `thinking.enabled` 存在时显示 thinking 开关状态 |
 | >= 2.1.145 | Claude Code 检测到开放 PR 时显示编号和审查状态 |
 | >= 2.1.153 | 优先使用 `COLUMNS` / `LINES` 做终端宽度适配；更旧版本回退到 TTY 宽度或 80 列 |
+| >= 2.1.251 | `prompt_cache` 存在时显示会话缓存状态，并支持 `rate_limits.spend_limit` 提供的可选企业网关 `Limit` |
 
 Claude Code 的 `subagentStatusLine` 是另一套独立命令协议:它一次接收一批 `tasks`,
 再为每个要自定义的 agent 行输出一行 JSON。它不是主 `statusLine` payload 的新增字段;
 ccglance 当前只面向主状态栏。
 
-配额行只面向订阅场景。Claude.ai Pro/Max 这类订阅会话可能提供 `rate_limits`；
-API key、Bedrock、Vertex 等按量/外部网关场景通常没有该字段，ccglance 会隐藏配额行，
-不会自行推断或伪造。
+配额行完全由输入数据驱动。Claude.ai Pro/Max 这类订阅会话可能提供五小时和七天窗口；
+Claude apps gateway 还可能单独或同时提供消费 `Limit`。API key、Bedrock、Vertex 等按量
+场景通常没有这些字段，因此 ccglance 会隐藏配额行，不会自行推断或伪造。
 
 ## 原理
 

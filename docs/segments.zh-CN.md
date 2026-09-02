@@ -16,14 +16,14 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | ✅/⏸️/💭/⚙️/🔧 | 状态 | transcript 尾部 | 仅图标显示状态；工具运行时显示工具名 |
 | 🚀 | fast | `fast_mode` | 仅 fast 模式开启时显示 |
 | ⚡️ | 上下文 | `context_window` | 占比 · 输入 · 输出 · 剩余 |
-| 💾 | 缓存 | `context_window.current_usage` | 命中率 · 缓存读取 · 缓存写入 |
+| 💾 | 缓存 | `context_window.current_usage` / `prompt_cache` | 最近一次请求命中率 · 最近一次缓存读写 · 热缓存剩余时间或冷缓存重建量；本次 usage 不可用时，仅以 `Avg` 展示会话累计比例，不显示读写量 |
 | 🎯 | 输出风格 | `output_style.name` | 当前 output style |
 
 **第二行 —— 订阅 / 配额**
 
 | 标识 | 段 | 来源 | 展示 |
 |---|---|---|---|
-| 📊 | 配额 | `rate_limits.five_hour` / `rate_limits.seven_day` | Hour / Week 紧凑月相仪表，各自带百分比和重置时间；Claude Code 当前没有月配额窗口 |
+| 📊 | 配额 | `rate_limits.five_hour` / `seven_day` / `spend_limit` | Hour / Week 月相仪表，以及可选的企业网关 `Limit`；各自带百分比和重置时间，`Limit` 可超过 100% |
 
 **第三行 —— 项目 / 会话**
 
@@ -45,7 +45,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | 10% <= 占用 < 30% | 🌒 |
 | 30% <= 占用 < 60% | 🌓 |
 | 60% <= 占用 < 90% | 🌔 |
-| 90% <= 占用 <= 100% | 🌕 |
+| 占用 >= 90% | 🌕 |
 
 ## 图标说明
 
@@ -64,7 +64,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 | ⚡️ | 上下文窗口占用 |
 | 💾 | prompt cache 使用情况 |
 | 🎯 | output style |
-| 📊 | Hour / Week 订阅配额 |
+| 📊 | Hour / Week 订阅配额及可选的企业网关 Limit |
 | 🌑 🌒 🌓 🌔 🌕 | 配额占用档位 |
 | ⏳ | 距离当前配额窗口重置的时间 |
 | 📁 | 当前目录 |

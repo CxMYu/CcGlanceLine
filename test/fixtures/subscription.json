@@ -20,6 +20,20 @@
       "cache_creation_input_tokens": 15000
     }
   },
+  "prompt_cache": {
+    "warm": true,
+    "caching_observed": true,
+    "ttl": "1h",
+    "expires_at": 1893458700,
+    "requests": 14,
+    "misses": 2,
+    "expected_rebuilds": 1,
+    "hit_ratio": 0.91,
+    "cache_write_tokens": 352000,
+    "miss_recache_tokens": 310200,
+    "last_miss_at": 1893455230,
+    "recache_tokens_if_cold": 45000
+  },
   "output_style": {
     "name": "default"
   },
@@ -43,5 +57,5 @@
     "total_lines_added": 156,
     "total_lines_removed": 23
   },
-  "version": "2.1.153"
+  "version": "2.1.258"
 }

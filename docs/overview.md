@@ -23,15 +23,16 @@ Full segment / icon / color reference: [segments.md](./segments.md).
 - **stdin-first** — core segments consume the JSON Claude Code provides; status
   reads a bounded transcript tail only when used.
 - **Rich context block** — usage %, this-turn input/output tokens, tokens left.
-- **Prompt-cache block** — cache hit rate, read/write tokens.
+- **Prompt-cache block** — session hit rate, latest read/write tokens, and warm
+  time or cold recache size; older payloads retain the per-request ratio.
 - **Git segment** — branch, clean/dirty/conflict glyph, ahead/behind counts,
   using one bounded `git status` call plus a short local cache.
 - **Session segment** — elapsed time plus lines added/removed.
 - **Claude Code version + update hint** — shows the `version` field from
   Claude Code stdin and appends `↑latest` when the 2h local cache reports a
   newer Claude Code release. Refresh runs after stdout and never blocks.
-- **Additional session context** — 5h/7d rate-limit quota, USD cost and
-  worktree name next to the git branch when Claude Code provides it.
+- **Additional session context** — 5h/7d rate-limit quota, optional gateway
+  spend Limit, USD cost and worktree name when Claude Code provides them.
 - **Responsive multi-line layout** — probes the terminal width
   (`CCGLANCE_WIDTH` -> `COLUMNS` -> TTY -> `tput`/`stty`) and wraps each row into
   as many lines as fit, down to a minimum of **one segment per line** so
@@ -54,15 +55,18 @@ Claude Code compatibility:
 | >= 2.1.119 | Thinking on/off state when `thinking.enabled` is present |
 | >= 2.1.145 | PR number and review state when Claude Code detects an open pull request |
 | >= 2.1.153 | Preferred terminal-width sizing through `COLUMNS` / `LINES`; older versions fall back to TTY width or 80 columns |
+| >= 2.1.251 | Session prompt-cache health when `prompt_cache` is present, plus an optional gateway spend `Limit` from `rate_limits.spend_limit` |
 
 Claude Code's `subagentStatusLine` is a separate command protocol: it receives a
 batch of `tasks` and writes one JSON line per customized agent row. It is not a
 new field in the main `statusLine` payload, and ccglance currently targets the
 main status line only.
 
-The quota row is subscription-only. Claude.ai Pro/Max-style sessions can expose
-`rate_limits`; API-key, Bedrock, Vertex, and other usage-based sessions usually
-do not, so ccglance hides the quota row instead of inferring one.
+The quota row is data-driven. Claude.ai Pro/Max-style sessions can expose the
+five-hour and seven-day windows; a Claude apps gateway can instead or additionally
+expose a spend `Limit`. API-key, Bedrock, Vertex, and other usage-based sessions
+usually do not provide these fields, so ccglance hides the row instead of
+inferring one.
 
 ## How it works
 

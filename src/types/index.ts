@@ -40,6 +40,21 @@ export interface ContextWindow {
   current_usage?: CurrentUsage | null;
 }
 
+export interface PromptCache {
+  warm?: boolean;
+  caching_observed?: boolean;
+  ttl?: string;
+  expires_at?: number | null;
+  requests?: number;
+  misses?: number;
+  expected_rebuilds?: number;
+  hit_ratio?: number | null;
+  cache_write_tokens?: number;
+  miss_recache_tokens?: number;
+  last_miss_at?: number | null;
+  recache_tokens_if_cold?: number | null;
+}
+
 export interface OutputStyle {
   name?: string;
 }
@@ -74,6 +89,7 @@ export interface RateLimitWindow {
 export interface RateLimits {
   five_hour?: RateLimitWindow;
   seven_day?: RateLimitWindow;
+  spend_limit?: RateLimitWindow;
 }
 
 export interface Worktree {
@@ -103,6 +119,7 @@ export interface StdinData {
   fast_mode?: boolean;
   exceeds_200k_tokens?: boolean;
   context_window?: ContextWindow;
+  prompt_cache?: PromptCache;
   output_style?: OutputStyle;
   rate_limits?: RateLimits;
   // 项目 / 会话
@@ -117,7 +134,7 @@ export interface StdinData {
 // ── 内置渲染规格 ──────────────────────────────────────────────────────────────
 
 export type LayoutMode = 'responsive' | 'fixed';
-export type RateShow = 'five_hour' | 'seven_day' | 'both' | 'all';
+export type RateShow = 'five_hour' | 'seven_day' | 'spend_limit' | 'both' | 'all';
 
 export interface LayoutSpec {
   mode: LayoutMode;
@@ -149,6 +166,7 @@ export interface SegmentOptions {
   labels?: {
     five_hour?: string;
     seven_day?: string;
+    spend_limit?: string;
   };
   // usage / context
   percentOnly?: boolean;

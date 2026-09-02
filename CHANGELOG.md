@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 - 2026-09-02
+
+- Keep the prompt-cache percentage aligned with the latest request's read/write
+  token counters, append compact warm-TTL or cold-rebuild state, and use a
+  clearly labelled session average only while current usage is unavailable.
+- Add the account `spend_limit` as a third `Limit` usage window alongside Hour
+  and Week, including reset time and uncapped percentages for gateway limits.
+- Refresh the built-in Claude Code 2.1.258 sample, npm documentation, fixtures,
+  and independently rendered Windows/macOS previews for the new fields.
+
 ## 1.2.2 - 2026-08-07
 
 - Replace the outdated single preview with separate Windows 11 and macOS

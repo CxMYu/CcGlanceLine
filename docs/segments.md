@@ -17,14 +17,14 @@ shows, all icon meanings, rate-limit levels and color semantics.
 | ✅/⏸️/💭/⚙️/🔧 | status | transcript tail | icon-only state; tool name while a tool is running |
 | 🚀 | fast | `fast_mode` | shown only when fast mode is on |
 | ⚡️ | context | `context_window` | usage % · input · output · tokens left |
-| 💾 | cache | `context_window.current_usage` | hit % · cache read · cache write |
+| 💾 | cache | `context_window.current_usage` / `prompt_cache` | latest-request hit % · latest cache read/write · warm time or cold recache size; when current usage is unavailable, shows the session ratio as `Avg` without read/write counters |
 | 🎯 | style | `output_style.name` | active output style |
 
 **Line 2 — quota**
 
 | Label | Segment | Source | Shows |
 |---|---|---|---|
-| 📊 | rate limits | `rate_limits.five_hour` / `rate_limits.seven_day` | Compact Hour / Week moon-phase meters with percentage and reset time; Claude Code does not provide a monthly quota window |
+| 📊 | rate limits | `rate_limits.five_hour` / `seven_day` / `spend_limit` | Compact Hour / Week meters plus an optional gateway `Limit`, each with percentage and reset time; `Limit` may exceed 100% |
 
 **Line 3 — project / session**
 
@@ -46,7 +46,7 @@ Rate-limit moon phases:
 | 10% <= usage < 30% | 🌒 |
 | 30% <= usage < 60% | 🌓 |
 | 60% <= usage < 90% | 🌔 |
-| 90% <= usage <= 100% | 🌕 |
+| usage >= 90% | 🌕 |
 
 ## Icon Reference
 
@@ -65,7 +65,7 @@ Rate-limit moon phases:
 | ⚡️ | context-window usage |
 | 💾 | prompt cache usage |
 | 🎯 | output style |
-| 📊 | Hour / Week rate-limit quota |
+| 📊 | Hour / Week rate-limit quota and optional gateway Limit |
 | 🌑 🌒 🌓 🌔 🌕 | rate-limit usage level |
 | ⏳ | time until the quota window resets |
 | 📁 | current directory |

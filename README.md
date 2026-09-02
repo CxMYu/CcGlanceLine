@@ -4,24 +4,30 @@
 
 **A fast, zero-dependency, multi-line status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code)**
 
-model · effort · context · cache · git · session — all at a glance
+model · effort · context · prompt cache · limits · git · session — all at a glance
 
 [![Node.js >= 22](https://img.shields.io/badge/node-%3E%3D22-3c873a)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/CxMYu/CcGlanceLine)
 
-**Windows 11 · Segoe UI Emoji**
+**Windows 11 · Segoe UI Emoji · Claude Code 2.1.258 sample**
 
 ![ccglance on Windows 11](./docs/assets/preview-windows.png)
 
-**macOS · Apple Color Emoji**
+**macOS · Apple Color Emoji · Claude Code 2.1.258 sample**
 
 ![ccglance on macOS](./docs/assets/preview-macos.png)
 
 </div>
 
 > **stdin-first · zero runtime dependencies · fixed emoji style** — renders the JSON Claude Code pipes to its status-line command; only the `status` segment reads a bounded transcript tail. Written in TypeScript, shipped as compiled JavaScript; runs on Node.js ≥ 22 or Bun.
+
+Current Claude Code cache and usage-limit fields are covered, including the
+latest request's prompt-cache hit ratio and token traffic, warm/cold state, and
+the Hour, Week, and account Limit usage windows.
+Older Claude Code versions keep working through optional fields and the legacy
+cache calculation.
 
 **Docs:** [Overview](./docs/overview.md) · [Segments & icons](./docs/segments.md) · [Development](./docs/development.md)
 

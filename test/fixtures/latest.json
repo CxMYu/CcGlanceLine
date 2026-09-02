@@ -27,7 +27,35 @@
       "cache_creation_input_tokens": 16000
     }
   },
+  "prompt_cache": {
+    "warm": true,
+    "caching_observed": true,
+    "ttl": "1h",
+    "expires_at": 1738429200,
+    "requests": 14,
+    "misses": 2,
+    "expected_rebuilds": 1,
+    "hit_ratio": 0.91,
+    "cache_write_tokens": 352000,
+    "miss_recache_tokens": 310200,
+    "last_miss_at": 1738425230,
+    "recache_tokens_if_cold": 45000
+  },
   "exceeds_200k_tokens": true,
+  "rate_limits": {
+    "five_hour": {
+      "used_percentage": 23.5,
+      "resets_at": 1738425600
+    },
+    "seven_day": {
+      "used_percentage": 41.2,
+      "resets_at": 1738857600
+    },
+    "spend_limit": {
+      "used_percentage": 62.8,
+      "resets_at": 1740787200
+    }
+  },
   "workspace": {
     "current_dir": "/tmp/ccglance-latest",
     "project_dir": "/tmp/ccglance-latest",
@@ -51,5 +79,5 @@
     "total_lines_added": 12,
     "total_lines_removed": 3
   },
-  "version": "2.1.221"
+  "version": "2.1.258"
 }

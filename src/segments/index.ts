@@ -65,8 +65,21 @@ function statusIcon(ctx: SegCtx, key: 'idle' | 'paused' | 'thinking' | 'working'
   return opt(ctx, 'status').statusIcons?.[key] || fallback;
 }
 
-function fmtRatePct(v: number): string {
-  return Math.max(0, Math.min(100, Math.round(v))) + '%';
+function fmtRatePct(v: number, allowOver100 = false): string {
+  const rounded = Math.max(0, Math.round(v));
+  return (allowOver100 ? rounded : Math.min(100, rounded)) + '%';
+}
+
+// Prompt-cache TTLs are short; minute precision stays compact and avoids a noisy seconds countdown.
+function fmtCacheRemaining(epochSec: number | null | undefined, nowMs: number): string | null {
+  const expiry = num(epochSec);
+  if (expiry == null) return null;
+  const ms = expiry * 1000 - nowMs;
+  if (ms <= 0) return null;
+  const minutes = Math.max(1, Math.ceil(ms / 60000));
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours ? `${hours}h${rest ? `${rest}m` : ''}` : `${minutes}m`;
 }
 
 // 会话状态：读 transcript 尾部推断；默认仅显示图标，工具态附带工具名。
@@ -130,12 +143,35 @@ const context: SegmentFn = (ctx) => {
 const cache: SegmentFn = (ctx) => {
   const cw = ctx.data.context_window;
   if (!cw) return null;
-  const cu = cw.current_usage || {};
-  const used = nonNegative(cw.total_input_tokens) ?? nonNegative(cu.input_tokens) ?? 0;
-  const read = nonNegative(cu.cache_read_input_tokens) ?? 0;
-  const write = nonNegative(cu.cache_creation_input_tokens) ?? 0;
-  const hitPct = used > 0 && read > 0 ? read / used * 100 : 0;
-  return iconSeg(ctx, 'cache', C.cache, 'cache', `${fmtPct(hitPct)}${DOT}↓${fmtTokens(read)}${DOT}↑${fmtTokens(write)}`);
+  const cu = cw.current_usage;
+  const read = nonNegative(cu?.cache_read_input_tokens) ?? 0;
+  const write = nonNegative(cu?.cache_creation_input_tokens) ?? 0;
+  const fresh = nonNegative(cu?.input_tokens);
+  const latestTotal = fresh != null
+    ? fresh + read + write
+    : nonNegative(cw.total_input_tokens);
+  const latestHitPct = cu && latestTotal != null
+    ? latestTotal > 0 ? Math.max(0, Math.min(100, read / latestTotal * 100)) : 0
+    : null;
+  const pc = ctx.data.prompt_cache;
+  const ratio = pc?.caching_observed === true ? num(pc.hit_ratio) : null;
+  const sessionHitPct = ratio != null ? Math.max(0, Math.min(1, ratio)) * 100 : null;
+  const parts = latestHitPct != null
+    ? [fmtPct(latestHitPct), `↓${fmtTokens(read)}`, `↑${fmtTokens(write)}`]
+    : sessionHitPct != null
+      ? [`Avg ${fmtPct(sessionHitPct)}`]
+      : ['0%', '↓0', '↑0'];
+
+  if (pc?.caching_observed === true && pc.warm === true) {
+    const remaining = fmtCacheRemaining(pc.expires_at, ctx.nowMs);
+    const ttl = typeof pc.ttl === 'string' ? pc.ttl.trim() : '';
+    parts.push(`🔥${remaining || ttl}`);
+  } else if (pc?.caching_observed === true && pc.warm === false) {
+    const recache = positive(pc.recache_tokens_if_cold);
+    parts.push(`🧊${recache != null ? `↻${fmtTokens(recache)}` : ''}`);
+  }
+
+  return iconSeg(ctx, 'cache', C.cache, 'cache', parts.join(DOT));
 };
 
 const rateLimits: SegmentFn = (ctx) => {
@@ -147,6 +183,7 @@ const rateLimits: SegmentFn = (ctx) => {
   const labels = {
     five_hour: o.labels?.five_hour || 'Hour',
     seven_day: o.labels?.seven_day || 'Week',
+    spend_limit: o.labels?.spend_limit || 'Limit',
   };
   const normal = optTextColor(ctx, 'rate_limits', C.rate);
   const bold = optBold(ctx, 'rate_limits');
@@ -161,17 +198,21 @@ const rateLimits: SegmentFn = (ctx) => {
           : pct >= 10 ? '🌒' : '🌑';
     return paint(color, glyph, bold);
   };
-  const pushWindow = (label: string, win: { used_percentage?: number; resets_at?: number } | undefined): void => {
-    if (!win || win.used_percentage == null) return;
-    const pct = win.used_percentage;
+  const pushWindow = (
+    label: string,
+    win: { used_percentage?: number; resets_at?: number } | undefined,
+    allowOver100 = false,
+  ): void => {
+    const pct = nonNegative(win?.used_percentage);
+    if (pct == null) return;
     const warn = o.warnPct != null ? o.warnPct : 70;
     const danger = o.dangerPct != null ? o.dangerPct : 90;
     const winColor = pctColor(pct, warn, danger, normal);
-    const reset = showReset ? fmtResetIn(win.resets_at, ctx.nowMs) : null;
+    const reset = showReset ? fmtResetIn(win?.resets_at, ctx.nowMs) : null;
     const detail = [
       paint(normal, label, bold),
       meter(pct, winColor),
-      paint(winColor, fmtRatePct(pct), bold),
+      paint(winColor, fmtRatePct(pct, allowOver100), bold),
     ];
     if (reset) detail.push(paint(C.rateReset, '⏳', bold), paint(C.rateReset, reset, bold));
     parts.push(detail.join(' '));
@@ -183,6 +224,9 @@ const rateLimits: SegmentFn = (ctx) => {
   }
   if (wants(['all', 'both', 'seven_day'])) {
     pushWindow(labels.seven_day, rl.seven_day);
+  }
+  if (wants(['all', 'spend_limit'])) {
+    pushWindow(labels.spend_limit, rl.spend_limit, true);
   }
   if (!parts.length) return null;
   const col = pctColor(maxUsed, o.warnPct != null ? o.warnPct : 70, o.dangerPct != null ? o.dangerPct : 90, normal);

@@ -4,24 +4,28 @@
 
 **面向 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 的快速、零依赖多行状态栏**
 
-模型 · effort · 上下文 · 缓存 · git · 会话 —— 一眼尽览
+模型 · effort · 上下文 · prompt cache · 限额 · git · 会话 —— 一眼尽览
 
 [![Node.js >= 22](https://img.shields.io/badge/node-%3E%3D22-3c873a)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [GitHub](https://github.com/CxMYu/CcGlanceLine)
 
-**Windows 11 · Segoe UI Emoji**
+**Windows 11 · Segoe UI Emoji · Claude Code 2.1.258 示例**
 
 ![ccglance 在 Windows 11 上的效果](./docs/assets/preview-windows.png)
 
-**macOS · Apple Color Emoji**
+**macOS · Apple Color Emoji · Claude Code 2.1.258 示例**
 
 ![ccglance 在 macOS 上的效果](./docs/assets/preview-macos.png)
 
 </div>
 
 > **stdin 优先 · 运行时零依赖 · 固定 emoji 风格** —— 渲染 Claude Code 经 stdin 传入的 JSON;仅 `status` 段读取 transcript 尾部固定字节。TypeScript 编写,以编译后的 JavaScript 发布,可在 Node.js ≥ 22 或 Bun 上运行。
+
+已覆盖新版 Claude Code 的缓存和限额字段，包括最近一次请求的 prompt cache 命中率与
+token 流量、缓存冷热状态，以及 Hour、Week 和账户 Limit 三类用量窗口。旧版 Claude Code 缺少这些可选字段时，
+仍会自动沿用原有缓存计算逻辑。
 
 **文档:** [概览](./docs/overview.zh-CN.md) · [字段与图标](./docs/segments.zh-CN.md) · [开发](./docs/development.zh-CN.md)
 

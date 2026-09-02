@@ -102,11 +102,12 @@ test('preview covers default display segments without fake optional fields', () 
     '💾',
     'Hour',
     'Week',
+    'Limit',
     path.basename(cwd),
     '🌿 main 🌲 main',
     '🌲 main',
     '$0.123',
-    'v2.1.221',
+    'v2.1.258',
   ]) {
     assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -124,6 +125,65 @@ test('cache segment renders zero values when usage fields are missing', () => {
   };
   const out = renderData(data);
   assert.match(out, /💾 0% · ↓0 · ↑0/);
+});
+
+test('prompt cache aligns hit ratio with latest read/write and appends warm or cold state', () => {
+  const warm = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'api.json'), 'utf8'));
+  delete warm.version;
+  warm.context_window.total_input_tokens = 235000;
+  warm.context_window.current_usage.cache_read_input_tokens = 172000;
+  warm.context_window.current_usage.cache_creation_input_tokens = 15000;
+  warm.prompt_cache = {
+    caching_observed: true,
+    warm: true,
+    ttl: '1h',
+    expires_at: Math.floor(Date.now() / 1000) + 45 * 60,
+    hit_ratio: 0.91,
+  };
+  assert.match(renderData(warm), /💾 73.2% · ↓172k · ↑15k · 🔥45m/);
+
+  const zeroHit = structuredClone(warm);
+  zeroHit.prompt_cache.hit_ratio = 0;
+  assert.match(renderData(zeroHit), /💾 73.2% · ↓172k · ↑15k · 🔥45m/);
+
+  const futureTtl = structuredClone(warm);
+  futureTtl.prompt_cache.expires_at = null;
+  futureTtl.prompt_cache.ttl = '2h';
+  assert.match(renderData(futureTtl), /💾 73.2% · ↓172k · ↑15k · 🔥2h/);
+
+  const cold = structuredClone(warm);
+  cold.prompt_cache.warm = false;
+  cold.prompt_cache.recache_tokens_if_cold = 45000;
+  assert.match(renderData(cold), /💾 73.2% · ↓172k · ↑15k · 🧊↻45k/);
+
+  const sessionFallback = structuredClone(warm);
+  sessionFallback.context_window.current_usage = null;
+  const fallbackOut = renderData(sessionFallback);
+  assert.match(fallbackOut, /💾 Avg 91% · 🔥45m/);
+  assert.doesNotMatch(fallbackOut, /💾 Avg 91% · [^|\n]*[↓↑]/);
+});
+
+test('latest request cache ratio works when session statistics are unavailable', () => {
+  const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'subscription.json'), 'utf8'));
+  delete data.version;
+  data.prompt_cache = { caching_observed: false, warm: false, hit_ratio: 0 };
+  const out = renderData(data);
+  assert.match(out, /💾 73.2% · ↓172k · ↑15k/);
+  assert.doesNotMatch(out, /🔥|🧊/);
+});
+
+test('gateway spend limit is additive and may exceed 100 percent', () => {
+  const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'api.json'), 'utf8'));
+  delete data.version;
+  data.rate_limits = {
+    spend_limit: {
+      used_percentage: 128.4,
+      resets_at: Math.floor(Date.now() / 1000) + 24 * 3600,
+    },
+  };
+  const out = renderData(data);
+  assert.match(out, /📊 Limit 🌕 128%/);
+  assert.doesNotMatch(out, /Hour|Week/);
 });
 
 test('model display prefers stdin display_name and falls back to readable id', () => {
@@ -155,6 +215,10 @@ test('latest statusline fields render while old fixtures remain optional', (t) =
   const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'latest.json'), 'utf8'));
   delete data.version;
   data.workspace.current_dir = repo;
+  data.prompt_cache.expires_at = Math.floor(Date.now() / 1000) + 45 * 60;
+  data.rate_limits.five_hour.resets_at = Math.floor(Date.now() / 1000) + 2 * 3600;
+  data.rate_limits.seven_day.resets_at = Math.floor(Date.now() / 1000) + 3 * 86400;
+  data.rate_limits.spend_limit.resets_at = Math.floor(Date.now() / 1000) + 30 * 86400;
 
   const out = renderData(data);
   for (const expected of [
@@ -163,6 +227,8 @@ test('latest statusline fields render while old fixtures remain optional', (t) =
     '🧠 xhigh ⊘',
     '🌲 manual-worktree',
     '🔀 #1234 ✓',
+    '💾 73.2% · ↓172k · ↑16k · 🔥45m',
+    'Limit 🌔 63%',
   ]) {
     assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }

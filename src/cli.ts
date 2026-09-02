@@ -21,16 +21,24 @@ const PREVIEW_SAMPLE: StdinData = {
     used_percentage: 23.5, remaining_percentage: 76.5,
     current_usage: { output_tokens: 1200, cache_read_input_tokens: 172000, cache_creation_input_tokens: 15000 },
   },
+  prompt_cache: {
+    warm: true, caching_observed: true, ttl: '1h',
+    expires_at: Math.floor(Date.now() / 1000) + 45 * 60,
+    requests: 14, misses: 2, expected_rebuilds: 1, hit_ratio: 0.91,
+    cache_write_tokens: 352000, miss_recache_tokens: 310200,
+    recache_tokens_if_cold: 45000,
+  },
   output_style: { name: 'default' },
   rate_limits: {
     five_hour: { used_percentage: 23.5, resets_at: Math.floor(Date.now() / 1000) + 2 * 3600 },
     seven_day: { used_percentage: 41.2, resets_at: Math.floor(Date.now() / 1000) + 3 * 86400 },
+    spend_limit: { used_percentage: 62.8, resets_at: Math.floor(Date.now() / 1000) + 30 * 86400 },
   },
   workspace: { current_dir: process.cwd() },
   worktree: { name: 'main', branch: 'main' },
   session_name: 'ccglance',
   cost: { total_cost_usd: 0.1234, total_duration_ms: 192000, total_lines_added: 156, total_lines_removed: 23 },
-  version: '2.1.221',
+  version: '2.1.258',
 };
 
 const argv = process.argv.slice(2);

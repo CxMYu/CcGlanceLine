@@ -25,11 +25,11 @@ export const DEFAULT_SPEC: StatuslineSpec = {
     cache: { enabled: true },
     rate_limits: {
       enabled: true,
-      show: 'both',
+      show: 'all',
       warnPct: 70,
       dangerPct: 90,
       showReset: true,
-      labels: { five_hour: 'Hour', seven_day: 'Week' },
+      labels: { five_hour: 'Hour', seven_day: 'Week', spend_limit: 'Limit' },
     },
     style: { enabled: true },
     dir: { enabled: true, fullPath: false },
