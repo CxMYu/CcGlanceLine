@@ -11,7 +11,7 @@ shows, all icon meanings, rate-limit levels and color semantics.
 
 | Label | Segment | Source | Shows |
 |---|---|---|---|
-| 🤖 | model | `model.display_name`, fallback to `model.id` | stdin display name with minimal compacting (`Opus 5 1M`); readable id fallback when missing |
+| 🤖 | model | `model.display_name`, `model.id`, `context_window.context_window_size` | compact display name (`Opus 5.5 1M`); actual capacity controls the 1M+ badge, legacy name/id hints are used only without a valid size |
 | 👤 | agent | `agent.name` | active main-agent name; hidden when absent |
 | 🧠 | effort / thinking | `effort.level`, `thinking.enabled` | reasoning effort; `⊘` is appended when thinking is explicitly disabled |
 | ✅/⏸️/💭/⚙️/🔧 | status | transcript tail | icon-only state; tool name while a tool is running |
@@ -24,7 +24,7 @@ shows, all icon meanings, rate-limit levels and color semantics.
 
 | Label | Segment | Source | Shows |
 |---|---|---|---|
-| 📊 | rate limits | `rate_limits.five_hour` / `seven_day` / `spend_limit` | Compact Hour / Week meters plus an optional gateway `Limit`, each with percentage and reset time; `Limit` may exceed 100% |
+| 📊 | rate limits | `rate_limits.five_hour` / `seven_day` / `spend_limit` | Hour / Week / optional gateway `Limit`, with percentage and reset time; `Limit` may exceed 100% and optionally shows `$used/$limit period` |
 
 **Line 3 — project / session**
 
@@ -100,3 +100,24 @@ the status line — a redraw-time approximation, not a live event stream:
 - `💭` thinking — waiting for or receiving model output
 - `⚙️` working — a tool result returned and Claude is processing it
 - `🔧 <tool>` — a tool call is in progress (tool name shown when available)
+
+Thinking-only and redacted-thinking entries remain `💭`. Explicit `end_turn` /
+`stop_sequence` indicates completion; older text replies with a missing or null
+`stop_reason` still fall back to `✅`. Informational metadata is skipped, while
+interruption records still take effect. These are transcript snapshots, so text
+alone cannot reliably distinguish a streamed partial reply from a completed one.
+See the [optional refresh configuration](../README.md#configure) to reduce stale
+status between assistant messages; no redraw means no new status inference.
+
+## Gateway spend amounts
+
+Claude Code and the gateway >= 2.1.284 can provide `used_usd`, `limit_usd`, and
+`period` inside `rate_limits.spend_limit`. With both valid amounts, ccglance shows
+for example `Limit 🌔 63% $314.00/$500.00 monthly`. Missing amounts keep the old
+percentage/reset display; zero spend is valid, and the limit must be positive.
+The period is displayed as supplied, including future values.
+
+The gateway fetches amounts separately, about every five minutes during request
+activity, while `used_percentage` arrives with responses. ccglance preserves the
+percentage and never recalculates it from possibly older amounts. See the
+[official spend-limit fields](https://code.claude.com/docs/en/statusline#spend-limit-fields).

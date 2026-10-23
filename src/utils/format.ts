@@ -19,13 +19,21 @@ const TOKEN_CASE: Record<string, string> = {
   vl: 'VL',
 };
 
-function contextSuffix(id: string): string {
+function contextSuffix(id: string, size?: number): string {
+  // New default-1M models may no longer carry [1m]. A valid live size also
+  // overrides a stale display-name/id hint when the session uses a smaller window.
+  if (typeof size === 'number' && Number.isFinite(size) && size > 0) {
+    return size >= 1000000 ? `${Number((size / 1000000).toFixed(2))}M` : '';
+  }
   return /\[1m\]/i.test(id) ? '1M' : '';
 }
 
-function appendContextSuffix(name: string, id: string): string {
-  const suffix = contextSuffix(id);
-  return suffix && !new RegExp(`\\b${suffix}\\b`, 'i').test(name) ? `${name} ${suffix}` : name;
+function appendContextSuffix(name: string, id: string, size?: number): string {
+  if (typeof size === 'number' && Number.isFinite(size) && size > 0) {
+    name = name.replace(/\s+\d+(?:\.\d+)?\s*[km]$/i, '').trim();
+  }
+  const suffix = contextSuffix(id, size);
+  return suffix && !new RegExp(`\\b${suffix.replace(/\./g, '\\.')}\\b`, 'i').test(name) ? `${name} ${suffix}` : name;
 }
 
 function matchClaudeFamily(raw: string): string | null {
@@ -45,7 +53,7 @@ function matchClaudeFamily(raw: string): string | null {
 function normalizeDisplayName(displayName: string): string {
   return displayName
     .replace(/^Claude\s+/i, '')
-    .replace(/\s*\((\d+)\s*([km])(?:\s+context)?\)/i, ' $1$2')
+    .replace(/\s*\((\d+(?:\.\d+)?)\s*([km])(?:\s+context)?\)/i, ' $1$2')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -84,12 +92,12 @@ function readableModelId(id: string): string {
 }
 
 // 模型名以 Claude Code stdin 的 display_name 为准；id 只在 display_name 缺失时兜底。
-export function modelName(model: Model): string {
+export function modelName(model: Model, contextWindowSize?: number): string {
   const id = (model.id || '').trim();
   const displayName = (model.display_name || '').trim();
   const normalizedDisplay = normalizeDisplayName(displayName);
   const baseName = normalizedDisplay || matchClaudeFamily(id) || readableModelId(id);
-  return appendContextSuffix(baseName, id);
+  return appendContextSuffix(baseName, id, contextWindowSize);
 }
 
 // 12345 → 12.3k

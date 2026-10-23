@@ -9,7 +9,7 @@ ccglance 展示什么、有哪些特性、环境要求、工作原理,以及缓�
 三个逻辑行,任意一行无数据时自动消失:
 
 1. **运行时** —— 🤖 模型 · 👤 agent · 🧠 effort/thinking · 状态 · 🚀 fast · ⚡️ 上下文 · 💾 缓存 · 🎯 风格
-2. **配额**(仅订阅会话)—— 📊 Hour / Week 配额仪表
+2. **配额**(有数据时)—— 📊 Hour / Week 配额仪表及可选网关 Limit
 3. **项目 / 会话** —— 📁 目录 · 🌿 git · 🔀 PR · 🏷️ 会话名 · ⏱️ 会话 · 💰 成本 · 💩 版本
 
 完整字段 / 图标 / 颜色参考:[segments.zh-CN.md](./segments.zh-CN.md)。
@@ -20,8 +20,8 @@ ccglance 展示什么、有哪些特性、环境要求、工作原理,以及缓�
 - **运行时零依赖** —— 仅用 Node 标准库;TypeScript 仅为构建期工具,不进发布包。
 - **stdin 优先** —— 核心段消费 Claude Code 提供的 JSON；status 只读 transcript 尾部固定字节。
 - **上下文块** —— 占用百分比、本轮输入/输出 token、剩余 token。
-- **缓存块** —— 会话缓存命中率、最近一次读取/写入 token，以及热缓存剩余时间或冷缓存重建量；
-  旧版 payload 继续使用单次请求命中率。
+- **缓存块** —— 最近一次请求命中率、读取/写入 token，以及热缓存剩余时间或冷缓存重建量；
+  仅在 current usage 不可用时回退会话累计 `Avg`。
 - **git 段** —— 分支、干净/脏/冲突标记、领先/落后计数；只跑一次有界 `git status`，并带短缓存。
 - **会话段** —— 耗时 + 新增/删除行数。
 - **Claude Code 版本 + 更新提示** —— 显示 stdin 里的 Claude Code `version`；
@@ -48,6 +48,12 @@ Claude Code 兼容性：
 | >= 2.1.145 | Claude Code 检测到开放 PR 时显示编号和审查状态 |
 | >= 2.1.153 | 优先使用 `COLUMNS` / `LINES` 做终端宽度适配；更旧版本回退到 TTY 宽度或 80 列 |
 | >= 2.1.251 | `prompt_cache` 存在时显示会话缓存状态，并支持 `rate_limits.spend_limit` 提供的可选企业网关 `Limit` |
+| >= 2.1.284 | 可选的企业网关 `Limit` 金额（`used_usd`、`limit_usd`）与周期；网关也需支持这些字段 |
+| >= 2.1.287 | 默认 1M 模型不带 `[1m]` 时，按实际 `context_window.context_window_size` 显示窗口标记 |
+
+本轮按 Claude Code **2.1.309** 核对。原有可选字段继续保留回退；接受 `pr.kind` 与
+prompt cache miss 诊断字段，不改变紧凑 PR/cache 格式。主状态栏没有官方文档定义的
+实时执行状态字段，status 仍从 transcript 推断。
 
 Claude Code 的 `subagentStatusLine` 是另一套独立命令协议:它一次接收一批 `tasks`,
 再为每个要自定义的 agent 行输出一行 JSON。它不是主 `statusLine` payload 的新增字段;

@@ -2,8 +2,8 @@
   "session_id": "fixture-latest",
   "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
   "model": {
-    "display_name": "Claude Opus 5 (1M context)",
-    "id": "claude-opus-5[1m]"
+    "display_name": "Claude Opus 5.5",
+    "id": "claude-opus-5-5"
   },
   "agent": {
     "name": "security-reviewer"
@@ -39,6 +39,8 @@
     "cache_write_tokens": 352000,
     "miss_recache_tokens": 310200,
     "last_miss_at": 1738425230,
+    "last_miss_cause": { "causes": ["tools_changed"], "tools_added": 2, "tools_removed": 0 },
+    "miss_causes": { "tools_changed": 2 },
     "recache_tokens_if_cold": 45000
   },
   "exceeds_200k_tokens": true,
@@ -53,6 +55,9 @@
     },
     "spend_limit": {
       "used_percentage": 62.8,
+      "used_usd": 314,
+      "limit_usd": 500,
+      "period": "monthly",
       "resets_at": 1740787200
     }
   },
@@ -79,5 +84,5 @@
     "total_lines_added": 12,
     "total_lines_removed": 3
   },
-  "version": "2.1.258"
+  "version": "2.1.309"
 }

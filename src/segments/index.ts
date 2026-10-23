@@ -100,7 +100,7 @@ const status: SegmentFn = (ctx) => {
 
 const model: SegmentFn = (ctx) =>
   ctx.data.model && (ctx.data.model.display_name || ctx.data.model.id)
-    ? iconSeg(ctx, 'model', C.model, 'model', modelName(ctx.data.model)) : null;
+    ? iconSeg(ctx, 'model', C.model, 'model', modelName(ctx.data.model, ctx.data.context_window?.context_window_size)) : null;
 
 const agent: SegmentFn = (ctx) =>
   ctx.data.agent?.name ? iconSeg(ctx, 'agent', C.agent, 'agent', ctx.data.agent.name) : null;
@@ -202,6 +202,7 @@ const rateLimits: SegmentFn = (ctx) => {
     label: string,
     win: { used_percentage?: number; resets_at?: number } | undefined,
     allowOver100 = false,
+    amounts?: string,
   ): void => {
     const pct = nonNegative(win?.used_percentage);
     if (pct == null) return;
@@ -214,6 +215,7 @@ const rateLimits: SegmentFn = (ctx) => {
       meter(pct, winColor),
       paint(winColor, fmtRatePct(pct, allowOver100), bold),
     ];
+    if (amounts) detail.push(paint(normal, amounts, bold));
     if (reset) detail.push(paint(C.rateReset, '⏳', bold), paint(C.rateReset, reset, bold));
     parts.push(detail.join(' '));
     maxUsed = Math.max(maxUsed, pct);
@@ -226,7 +228,16 @@ const rateLimits: SegmentFn = (ctx) => {
     pushWindow(labels.seven_day, rl.seven_day);
   }
   if (wants(['all', 'spend_limit'])) {
-    pushWindow(labels.spend_limit, rl.spend_limit, true);
+    const spend = rl.spend_limit;
+    const usedUsd = nonNegative(spend?.used_usd);
+    const limitUsd = positive(spend?.limit_usd);
+    const period = typeof spend?.period === 'string' ? spend.period.trim() : '';
+    // Dollar amounts are fetched separately and may lag the percentage. Never
+    // derive a replacement percentage from them or fabricate a missing amount.
+    const amounts = usedUsd != null && limitUsd != null
+      ? `${fmtCost(usedUsd)}/${fmtCost(limitUsd)}${period ? ` ${period}` : ''}`
+      : undefined;
+    pushWindow(labels.spend_limit, spend, true, amounts);
   }
   if (!parts.length) return null;
   const col = pctColor(maxUsed, o.warnPct != null ? o.warnPct : 70, o.dangerPct != null ? o.dangerPct : 90, normal);

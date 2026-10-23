@@ -95,7 +95,7 @@ test('preview covers default display segments without fake optional fields', () 
   assert.equal(result.status, 0);
   const out = stripAnsi(result.stdout);
   for (const expected of [
-    'Opus 5 1M',
+    'Opus 5.5 1M',
     'high',
     '✅',
     'fast',
@@ -107,7 +107,8 @@ test('preview covers default display segments without fake optional fields', () 
     '🌿 main 🌲 main',
     '🌲 main',
     '$0.123',
-    'v2.1.258',
+    '$314.00/$500.00 monthly',
+    'v2.1.309',
   ]) {
     assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -200,6 +201,7 @@ test('model display prefers stdin display_name and falls back to readable id', (
     const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'api.json'), 'utf8'));
     delete data.version;
     data.model = model;
+    delete data.context_window.context_window_size; // exercise legacy name/id fallback
     assert.match(renderData(data), new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });
@@ -222,17 +224,49 @@ test('latest statusline fields render while old fixtures remain optional', (t) =
 
   const out = renderData(data);
   for (const expected of [
-    'Opus 5 1M',
+    'Opus 5.5 1M',
     '👤 security-reviewer',
     '🧠 xhigh ⊘',
     '🌲 manual-worktree',
     '🔀 #1234 ✓',
     '💾 73.2% · ↓172k · ↑16k · 🔥45m',
     'Limit 🌔 63%',
+    '$314.00/$500.00 monthly',
   ]) {
     assert.match(out, new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.doesNotMatch(out, /200k/);
+});
+
+test('gateway dollar amounts are optional and never replace the live percentage', () => {
+  const data = JSON.parse(fs.readFileSync(path.join(FIXTURES, 'api.json'), 'utf8'));
+  delete data.version;
+  const spend = { used_percentage: 62.8, used_usd: 271.4, limit_usd: 500, period: 'monthly' };
+  data.rate_limits = { spend_limit: spend };
+  assert.match(renderData(data), /Limit 🌔 63% \$271\.40\/\$500\.00 monthly/);
+
+  data.rate_limits.spend_limit = { ...spend, used_usd: 0, period: 'quarterly' };
+  assert.match(renderData(data), /Limit 🌔 63% \$0\.000\/\$500\.00 quarterly/);
+
+  data.rate_limits.spend_limit = { used_percentage: 0, used_usd: 0, limit_usd: 500 };
+  assert.match(renderData(data), /Limit 🌑 0% \$0\.000\/\$500\.00/);
+
+  for (const incomplete of [
+    { used_percentage: 62.8 },
+    { ...spend, used_usd: undefined },
+    { ...spend, limit_usd: undefined },
+    { ...spend, used_usd: -1 },
+    { ...spend, used_usd: '271.4' },
+    { ...spend, limit_usd: 0 },
+  ]) {
+    data.rate_limits.spend_limit = incomplete;
+    const out = renderData(data);
+    assert.match(out, /Limit 🌔 63%/);
+    assert.doesNotMatch(out, /\$[^|\n]*\//);
+    assert.doesNotMatch(out, /monthly/);
+  }
+  data.rate_limits.spend_limit = { used_usd: 271.4, limit_usd: 500, period: 'monthly' };
+  assert.doesNotMatch(renderData(data), /Limit/, 'amounts alone must not invent a percentage');
 });
 
 test('git branch updates immediately after branch switch', (t) => {

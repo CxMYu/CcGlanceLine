@@ -12,7 +12,7 @@ import { readStdinData } from './readers';
 
 // preview 子命令用的内置样例（覆盖默认状态栏会展示的常规字段）
 const PREVIEW_SAMPLE: StdinData = {
-  model: { display_name: 'Opus 5', id: 'claude-opus-5[1m]' },
+  model: { display_name: 'Opus 5.5', id: 'claude-opus-5-5' },
   effort: { level: 'high' },
   thinking: { enabled: true },
   fast_mode: true,
@@ -32,13 +32,16 @@ const PREVIEW_SAMPLE: StdinData = {
   rate_limits: {
     five_hour: { used_percentage: 23.5, resets_at: Math.floor(Date.now() / 1000) + 2 * 3600 },
     seven_day: { used_percentage: 41.2, resets_at: Math.floor(Date.now() / 1000) + 3 * 86400 },
-    spend_limit: { used_percentage: 62.8, resets_at: Math.floor(Date.now() / 1000) + 30 * 86400 },
+    spend_limit: {
+      used_percentage: 62.8, resets_at: Math.floor(Date.now() / 1000) + 30 * 86400,
+      used_usd: 314, limit_usd: 500, period: 'monthly',
+    },
   },
   workspace: { current_dir: process.cwd() },
   worktree: { name: 'main', branch: 'main' },
   session_name: 'ccglance',
   cost: { total_cost_usd: 0.1234, total_duration_ms: 192000, total_lines_added: 156, total_lines_removed: 23 },
-  version: '2.1.258',
+  version: '2.1.309',
 };
 
 const argv = process.argv.slice(2);
@@ -56,16 +59,20 @@ function printHelp(): void {
   ccglance --help, -h     显示本帮助 (show this help)
   ccglance --version, -v  显示版本号 (print version)
 
-安装后配置 Setup — 装完必须做这一步 (required after \`npm install -g ccglance\`):
+安装后配置 Setup — 装完必须做这一步 (required after \`npm install -g @cxmyu/ccglance\`):
   把下面这段加进 ~/.claude/settings.json，然后重启 Claude Code。
   Add this to ~/.claude/settings.json, then restart Claude Code:
 
     {
       "statusLine": {
         "type": "command",
-        "command": "ccglance"
+        "command": "ccglance",
+        "refreshInterval": 5
       }
     }
+
+  Claude Code >= 2.1.97: refreshInterval 的单位为秒；删除此字段则仅按事件刷新。
+  Refresh runs locally; API usage still updates only when Claude Code receives it.
 
   未全局安装？让 Node 直接指向编译产物 (not installed globally? point Node at the built file):
     "command": "node /absolute/path/to/dist/cli.js"

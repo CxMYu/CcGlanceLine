@@ -22,6 +22,7 @@ export interface PullRequest {
   number?: number;
   url?: string;
   review_state?: string;
+  kind?: string; // GitLab: mr; absent for GitHub PRs
 }
 
 export interface CurrentUsage {
@@ -52,6 +53,13 @@ export interface PromptCache {
   cache_write_tokens?: number;
   miss_recache_tokens?: number;
   last_miss_at?: number | null;
+  last_miss_cause?: {
+    causes?: string[];
+    tools_added?: number;
+    tools_removed?: number;
+    system_char_delta?: number;
+  } | null;
+  miss_causes?: Record<string, number>;
   recache_tokens_if_cold?: number | null;
 }
 
@@ -86,10 +94,16 @@ export interface RateLimitWindow {
   resets_at?: number; // Unix epoch 秒
 }
 
+export interface SpendLimitWindow extends RateLimitWindow {
+  used_usd?: number;
+  limit_usd?: number;
+  period?: string;
+}
+
 export interface RateLimits {
   five_hour?: RateLimitWindow;
   seven_day?: RateLimitWindow;
-  spend_limit?: RateLimitWindow;
+  spend_limit?: SpendLimitWindow;
 }
 
 export interface Worktree {

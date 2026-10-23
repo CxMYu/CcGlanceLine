@@ -10,7 +10,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 
 | 标识 | 段 | 来源 | 展示 |
 |---|---|---|---|
-| 🤖 | 模型 | `model.display_name`，缺失时回退 `model.id` | stdin display name 只做轻量压缩(`Opus 5 1M`)；缺失时用可读 id 兜底 |
+| 🤖 | 模型 | `model.display_name`、`model.id`、`context_window.context_window_size` | 压缩名称如 `Opus 5.5 1M`；有效实际容量决定 1M 及以上窗口标记，缺失时才用名称/id 提示兜底 |
 | 👤 | agent | `agent.name` | 当前主 agent 名；字段缺失时隐藏 |
 | 🧠 | effort / thinking | `effort.level`、`thinking.enabled` | 推理强度；thinking 明确关闭时追加 `⊘` |
 | ✅/⏸️/💭/⚙️/🔧 | 状态 | transcript 尾部 | 仅图标显示状态；工具运行时显示工具名 |
@@ -23,7 +23,7 @@ ccglance 每个段的完整参考:读取哪个 stdin 字段、展示什么、所
 
 | 标识 | 段 | 来源 | 展示 |
 |---|---|---|---|
-| 📊 | 配额 | `rate_limits.five_hour` / `seven_day` / `spend_limit` | Hour / Week 月相仪表，以及可选的企业网关 `Limit`；各自带百分比和重置时间，`Limit` 可超过 100% |
+| 📊 | 配额 | `rate_limits.five_hour` / `seven_day` / `spend_limit` | Hour / Week / 可选企业网关 `Limit`，带百分比与重置时间；`Limit` 可超过 100%，可选追加 `$已用/$上限 周期` |
 
 **第三行 —— 项目 / 会话**
 
@@ -98,3 +98,20 @@ status 图标来自 transcript 尾部推断,只代表 Claude Code 触发 statusl
 - `💭` 思考中 —— 等待或正在接收模型输出
 - `⚙️` 处理中 —— 工具结果已返回,Claude 正在继续处理
 - `🔧 <工具名>` —— 正在调用工具(可用时显示工具名)
+
+只有 thinking 或 redacted-thinking 的记录保持 `💭`。明确的 `end_turn` / `stop_sequence`
+代表完成；旧版文本回复缺少 `stop_reason` 或为 null 时，仍保留 `✅` 的回退。普通元数据
+会跳过，中断记录仍会生效。transcript 是快照，单凭文本无法可靠区分流式片段和完整回复。
+可用[可选定时刷新](../README.zh-CN.md#配置)缩短 assistant 消息间的状态滞后；
+没有重绘时，ccglance 不会重新推断状态。
+
+## 企业网关消费金额
+
+Claude Code 和网关均 >= 2.1.284 时，`rate_limits.spend_limit` 可额外提供 `used_usd`、
+`limit_usd`、`period`。金额对有效时，例如显示 `Limit 🌔 63% $314.00/$500.00 monthly`。
+金额缺失仍沿用原来的百分比与重置时间；已用金额可为 0，上限必须大于 0。
+周期按原字符串展示，兼容未来新增值。
+
+金额由网关独立查询，在持续请求时约每五分钟更新；`used_percentage` 随响应更新，
+两者可能不同步。ccglance 保留官方百分比，不会用可能较旧的金额重算比例。
+见[官方消费限额字段](https://code.claude.com/docs/en/statusline#spend-limit-fields)。

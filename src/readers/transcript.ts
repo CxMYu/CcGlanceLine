@@ -6,6 +6,7 @@ import path from 'path';
 import { cacheDir } from '../utils/paths';
 
 const TAIL_BYTES = 64 * 1024; // 尾部读取上限：足够覆盖最近若干条消息
+const STATUS_CACHE_VERSION = 2;
 
 export interface TranscriptUsage {
   inputTokens: number;
@@ -151,14 +152,17 @@ function extractRecentStatus(lines: string[]): SessionStatus | null {
     try { e = JSON.parse(lines[i]) as StatusEntry; } catch { continue; }
     const msg = e.message;
     if (isInterruptedEntry(e)) return { state: 'paused' };
+    if (e.isMeta || !msg) continue;
     if (e.type === 'assistant') {
+      if (msg.stop_reason === 'end_turn' || msg.stop_reason === 'stop_sequence') return { state: 'idle' };
       const content = blocks(msg && msg.content);
       const toolUse = content.find((b) => b && b.type === 'tool_use');
       if (toolUse) return { state: 'tool', tool: toolUse.name };
-      // 已产出文本/思考内容 = 回合结束 → idle。
+      // 旧版完整文本回复可能没有 stop_reason；保留文本 → idle 的近似回退。
       // 注意：Claude Code transcript 常把完成的文本回复记为 stop_reason:null（而非 end_turn），
       // 所以判 idle 看「有内容」而非 stop_reason，否则正常回复会被误判成 thinking。
-      const hasText = content.some((b) => b && (b.type === 'text' || b.type === 'thinking'))
+      // 只有 thinking / redacted_thinking 时仍是思考中，不能据此判定完成。
+      const hasText = content.some((b) => b && b.type === 'text' && Boolean(b.text))
         || (typeof (msg && msg.content) === 'string' && String(msg && msg.content).length > 0);
       return { state: hasText ? 'idle' : 'thinking' };
     }
@@ -171,6 +175,7 @@ function extractRecentStatus(lines: string[]): SessionStatus | null {
 }
 
 interface StatusDiskCache {
+  version: number;
   mtimeMs: number;
   size: number;
   status: SessionStatus | null;
@@ -185,7 +190,7 @@ export function getRecentStatus(transcriptPath: string | undefined | null): Sess
   const cf = statusCacheFileFor(transcriptPath);
   try {
     const c = JSON.parse(fs.readFileSync(cf, 'utf8')) as StatusDiskCache;
-    if (c.mtimeMs === st.mtimeMs && c.size === st.size) return c.status;
+    if (c.version === STATUS_CACHE_VERSION && c.mtimeMs === st.mtimeMs && c.size === st.size) return c.status;
   } catch {
     // Cache miss.
   }
@@ -193,7 +198,7 @@ export function getRecentStatus(transcriptPath: string | undefined | null): Sess
   const status = extractRecentStatus(readTailLines(transcriptPath));
   try {
     fs.mkdirSync(path.dirname(cf), { recursive: true });
-    const payload: StatusDiskCache = { mtimeMs: st.mtimeMs, size: st.size, status };
+    const payload: StatusDiskCache = { version: STATUS_CACHE_VERSION, mtimeMs: st.mtimeMs, size: st.size, status };
     fs.writeFileSync(cf, JSON.stringify(payload));
   } catch {
     // Cache is best effort.

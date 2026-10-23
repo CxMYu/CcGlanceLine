@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0 - 2026-10-23
+
+- Follow Claude Code 2.1.309 while preserving older optional-field payloads.
+- Derive 1M+ model badges from the actual context-window size, with legacy
+  display-name and `[1m]` hints retained only when the live size is unavailable.
+- Keep thinking-only transcript entries in the thinking state, respect explicit
+  completion and interruption, and invalidate older derived status caches.
+- Display optional gateway spend amounts and periods alongside the independently
+  reported Limit percentage; preserve the existing display when amounts are absent.
+- Update the built-in sample and latest fixture to Claude Code 2.1.309, document
+  optional 5-second refresh and its limitations, and correct cache-ratio wording.
+
 ## 1.3.0 - 2026-09-02
 
 - Keep the prompt-cache percentage aligned with the latest request's read/write

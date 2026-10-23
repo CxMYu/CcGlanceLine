@@ -9,7 +9,7 @@ What ccglance shows, its features, requirements, how it works, and where it cach
 Three logical rows; any row with no data disappears:
 
 1. **Runtime** — 🤖 model · 👤 agent · 🧠 effort/thinking · status · 🚀 fast · ⚡️ context · 💾 cache · 🎯 style
-2. **Quota** *(subscription sessions only)* — 📊 Hour / Week rate-limit meters
+2. **Quota** *(when provided)* — 📊 Hour / Week meters and optional gateway Limit
 3. **Project / session** — 📁 dir · 🌿 git · 🔀 PR · 🏷️ session name · ⏱️ session · 💰 cost · 💩 version
 
 Full segment / icon / color reference: [segments.md](./segments.md).
@@ -23,8 +23,8 @@ Full segment / icon / color reference: [segments.md](./segments.md).
 - **stdin-first** — core segments consume the JSON Claude Code provides; status
   reads a bounded transcript tail only when used.
 - **Rich context block** — usage %, this-turn input/output tokens, tokens left.
-- **Prompt-cache block** — session hit rate, latest read/write tokens, and warm
-  time or cold recache size; older payloads retain the per-request ratio.
+- **Prompt-cache block** — latest-request hit rate and read/write tokens, plus
+  warm time or cold recache size; session `Avg` is used only without current usage.
 - **Git segment** — branch, clean/dirty/conflict glyph, ahead/behind counts,
   using one bounded `git status` call plus a short local cache.
 - **Session segment** — elapsed time plus lines added/removed.
@@ -56,6 +56,13 @@ Claude Code compatibility:
 | >= 2.1.145 | PR number and review state when Claude Code detects an open pull request |
 | >= 2.1.153 | Preferred terminal-width sizing through `COLUMNS` / `LINES`; older versions fall back to TTY width or 80 columns |
 | >= 2.1.251 | Session prompt-cache health when `prompt_cache` is present, plus an optional gateway spend `Limit` from `rate_limits.spend_limit` |
+| >= 2.1.284 | Optional gateway `Limit` dollar amounts (`used_usd`, `limit_usd`) and period; requires the gateway to support them too |
+| >= 2.1.287 | Default-1M models without `[1m]` are labelled from their actual `context_window.context_window_size` |
+
+Compatibility checked against Claude Code **2.1.309**. Existing optional fields
+retain their fallbacks; `pr.kind` and prompt-cache miss diagnostics are accepted
+without changing the compact PR/cache format. The main status line has no
+documented real-time execution-state field: its status still uses the transcript.
 
 Claude Code's `subagentStatusLine` is a separate command protocol: it receives a
 batch of `tasks` and writes one JSON line per customized agent row. It is not a

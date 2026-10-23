@@ -27,6 +27,16 @@
 token 流量、缓存冷热状态，以及 Hour、Week 和账户 Limit 三类用量窗口。旧版 Claude Code 缺少这些可选字段时，
 仍会自动沿用原有缓存计算逻辑。
 
+本次按 Claude Code 2.1.309 更新：模型窗口标记优先读取实际容量，不再依赖 `[1m]` 后缀；
+纯 thinking 记录保持思考状态；企业网关 Limit 可选追加金额与周期：
+
+```text
+🤖 Opus 5.5 1M | 🧠 high | 💭
+📊 Limit 🌔 63% $314.00/$500.00 monthly
+```
+
+上方平台图片保留为 Claude Code 2.1.258 的 emoji 差异参考示例。
+
 **文档:** [概览](./docs/overview.zh-CN.md) · [字段与图标](./docs/segments.zh-CN.md) · [开发](./docs/development.zh-CN.md)
 
 ## 终端字体
@@ -95,14 +105,16 @@ node dist/cli.js preview
   "statusLine": {
     "type": "command",
     "command": "ccglance",
-    "padding": 0
+    "padding": 0,
+    "refreshInterval": 5
   }
 }
 ```
 
-Claude Code >= 2.1.97 可在 `statusLine` 内可选增加 `"refreshInterval": 30`，
-让会话时长、配额重置、版本提示等时间相关字段在主会话空闲时也能更新。
-若需兼容更旧的 Claude Code，保持上面的基础配置即可。
+`refreshInterval` 的单位为秒，要求 Claude Code >= 2.1.97。示例每 5 秒额外刷新一次，
+让 transcript 推断状态、会话时长和倒计时在主会话空闲时也能更新。删除该字段即可恢复
+仅按事件刷新，或兼容更旧的 Claude Code。它不会让 API 用量提前更新；发送用户消息也
+不保证立即触发重绘。
 
 若未全局安装,直接用 Node 指向编译后的文件:
 
@@ -115,7 +127,8 @@ Claude Code >= 2.1.97 可在 `statusLine` 内可选增加 `"refreshInterval": 30
 }
 ```
 
-Windows 用完整路径,例如 `node D:\\path\\to\\ccglance\\dist\\cli.js`。
+Windows 建议用正斜杠；路径含空格时加引号，例如
+`"command": "node \"D:/path with spaces/ccglance/dist/cli.js\""`。
 
 > **跨平台路径**:Claude Code v2.1.47+ 会在所有平台展开命令开头的 `~`,所以
 > `node ~/path/to/dist/cli.js` 也能用。优先用 `~` 而非 `%USERPROFILE%`(近版本不可靠);
@@ -123,7 +136,7 @@ Windows 用完整路径,例如 `node D:\\path\\to\\ccglance\\dist\\cli.js`。
 > 让状态栏从最左开始。
 
 > **Windows 提速小贴士**:若在意状态栏启动延时,可把 `command` 直接指向编译产物
-> `node D:\\绝对路径\\ccglance\\dist\\cli.js`,通常比走全局 `ccglance` 命令更快一些。
+> `node D:/absolute/path/to/ccglance/dist/cli.js`,通常比走全局 `ccglance` 命令更快一些。
 
 ## 贡献
 

@@ -29,6 +29,17 @@ the Hour, Week, and account Limit usage windows.
 Older Claude Code versions keep working through optional fields and the legacy
 cache calculation.
 
+Updated for Claude Code 2.1.309: model window badges use the actual context
+capacity even without an `[1m]` suffix, thinking-only transcript entries stay
+in the thinking state, and gateway limits optionally include dollar amounts:
+
+```text
+🤖 Opus 5.5 1M | 🧠 high | 💭
+📊 Limit 🌔 63% $314.00/$500.00 monthly
+```
+
+The platform images above remain the Claude Code 2.1.258 emoji reference samples.
+
 **Docs:** [Overview](./docs/overview.md) · [Segments & icons](./docs/segments.md) · [Development](./docs/development.md)
 
 ## Terminal Font
@@ -103,15 +114,17 @@ Add a `statusLine` block to `~/.claude/settings.json`:
   "statusLine": {
     "type": "command",
     "command": "ccglance",
-    "padding": 0
+    "padding": 0,
+    "refreshInterval": 5
   }
 }
 ```
 
-On Claude Code >= 2.1.97, you can optionally add `"refreshInterval": 30`
-inside `statusLine` to keep elapsed time, quota resets, version hints, and other
-time-based fields moving while the main session is idle. Keep the base block
-above when compatibility with older Claude Code versions matters.
+`refreshInterval` is in seconds and requires Claude Code >= 2.1.97. This optional
+5-second refresh keeps transcript-derived status, elapsed time and countdowns
+moving while the main session is idle. Remove it for event-only refreshes or
+older Claude Code versions. It does not make API usage update before the next
+response, and submitting a prompt does not guarantee an immediate redraw.
 
 If you didn't install globally, point Node at the compiled file directly:
 
@@ -124,7 +137,8 @@ If you didn't install globally, point Node at the compiled file directly:
 }
 ```
 
-On Windows use a full path, e.g. `node D:\\path\\to\\ccglance\\dist\\cli.js`.
+On Windows use forward slashes and quote paths with spaces, e.g.
+`"command": "node \"D:/path with spaces/ccglance/dist/cli.js\""`.
 
 > **Cross-platform paths:** Claude Code v2.1.47+ expands a leading `~` in the
 > command on every platform, so `node ~/path/to/dist/cli.js` works too. Prefer
@@ -133,7 +147,7 @@ On Windows use a full path, e.g. `node D:\\path\\to\\ccglance\\dist\\cli.js`.
 > indent so the row starts at the left edge.
 
 > **Windows tip:** if status-line startup latency matters, point `command`
-> directly at the compiled file (`node D:\\absolute\\path\\to\\ccglance\\dist\\cli.js`)
+> directly at the compiled file (`node D:/absolute/path/to/ccglance/dist/cli.js`)
 > instead of the global `ccglance` command — it usually starts a bit faster.
 
 ## Contributing
